@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jogo de Inglês do Lucas</title>
+<style>
+  :root{
+    --bg1:#0f172a; --bg2:#1e1b4b; --card:#1e293b; --card2:#334155;
+    --accent:#6366f1; --accent2:#818cf8; --ok:#22c55e; --bad:#ef4444;
+    --text:#f1f5f9; --muted:#94a3b8; --gold:#fbbf24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{
+    font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+    background:linear-gradient(160deg,var(--bg1),var(--bg2));
+    color:var(--text);min-height:100vh;
+    display:flex;justify-content:center;align-items:flex-start;padding:16px;
+  }
+  .app{width:100%;max-width:560px}
+  header{text-align:center;padding:12px 0 20px}
+  header h1{font-size:1.6rem;font-weight:800;letter-spacing:-.5px}
+  header h1 span{color:var(--accent2)}
+  header p{color:var(--muted);font-size:.9rem;margin-top:4px}
+  .badge{font-size:.7rem;padding:2px 8px;border-radius:99px;background:var(--card2);color:var(--muted);margin-left:6px}
+  .badge.on{color:#86efac}
+  .badge.cache{color:var(--gold)}
+
+  .card{
+    background:var(--card);border:1px solid rgba(255,255,255,.06);
+    border-radius:20px;padding:22px;box-shadow:0 20px 50px rgba(0,0,0,.35);
+  }
+  .hidden{display:none!important}
+  .center{text-align:center;padding:30px 10px}
+  .spinner{width:44px;height:44px;border:4px solid var(--card2);border-top-color:var(--accent2);
+    border-radius:50%;margin:10px auto 18px;animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .modes{display:grid;gap:10px;margin:6px 0 18px}
+  .mode-btn{
+    display:flex;align-items:center;gap:14px;text-align:left;
+    background:var(--card2);border:2px solid transparent;color:var(--text);
+    padding:14px 16px;border-radius:14px;cursor:pointer;font-size:1rem;
+    transition:.15s;width:100%;
+  }
+  .mode-btn:hover{border-color:var(--accent);transform:translateY(-2px)}
+  .mode-btn .emoji{font-size:1.5rem}
+  .mode-btn .t{font-weight:700}
+  .mode-btn .d{font-size:.78rem;color:var(--muted)}
+  .mode-btn.sel{border-color:var(--accent2);background:#3b3f6b}
+
+  .row{display:flex;gap:10px;align-items:flex-start;margin:14px 0}
+  .row label{font-size:.85rem;color:var(--muted);min-width:120px;padding-top:8px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap}
+  .chip{
+    background:var(--card2);border:2px solid transparent;color:var(--text);
+    padding:8px 14px;border-radius:999px;cursor:pointer;font-size:.9rem;font-weight:600;
+  }
+  .chip.sel{border-color:var(--accent2);background:var(--accent)}
+  .lvlhint{font-size:.75rem;color:var(--muted);margin:-6px 0 6px 130px}
+
+  .btn-primary{
+    width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    color:#fff;border:none;padding:16px;border-radius:14px;font-size:1.05rem;
+    font-weight:800;cursor:pointer;margin-top:8px;transition:.15s;
+  }
+  .btn-primary:hover{filter:brightness(1.08);transform:translateY(-2px)}
+  .btn-primary:disabled{opacity:.5;cursor:not-allowed;filter:none;transform:none}
+  .btn-ghost{
+    background:transparent;border:1px solid var(--card2);color:var(--muted);
+    padding:10px;border-radius:12px;cursor:pointer;font-size:.85rem;width:100%;margin-top:10px;
+  }
+  .btn-ghost:hover{color:var(--text);border-color:var(--muted)}
+
+  .stats-mini{display:flex;justify-content:space-around;margin-top:16px;font-size:.8rem;color:var(--muted);text-align:center}
+  .stats-mini b{display:block;color:var(--text);font-size:1.3rem;font-weight:800}
+
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:.85rem}
+  .topbar .score{color:var(--gold);font-weight:700}
+  .topbar .streak{color:var(--accent2);font-weight:700}
+  .progress{height:8px;background:var(--card2);border-radius:99px;overflow:hidden;margin-bottom:20px}
+  .progress > i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--ok));transition:.3s}
+
+  .tag{display:inline-block;font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+  .lvltag{background:var(--card2);color:var(--accent2);border-radius:99px;padding:2px 10px;font-weight:700;margin-left:6px}
+  .prompt{text-align:center;padding:14px 8px 20px}
+  .prompt .word{font-size:2.2rem;font-weight:800;line-height:1.2}
+  .prompt .sub{color:var(--muted);margin-top:8px;font-size:.95rem}
+  .speak{
+    background:var(--card2);border:none;color:var(--text);width:46px;height:46px;
+    border-radius:50%;cursor:pointer;font-size:1.3rem;margin-top:12px;transition:.15s;
+  }
+  .speak:hover{background:var(--accent)}
+
+  .options{display:grid;gap:10px}
+  .opt{
+    background:var(--card2);border:2px solid transparent;color:var(--text);
+    padding:15px;border-radius:12px;cursor:pointer;font-size:1.05rem;text-align:center;transition:.12s;
+  }
+  .opt:hover{border-color:var(--accent)}
+  .opt.correct{background:rgba(34,197,94,.18);border-color:var(--ok)}
+  .opt.wrong{background:rgba(239,68,68,.18);border-color:var(--bad)}
+  .opt:disabled{cursor:default}
+
+  .type-in{width:100%;padding:15px;border-radius:12px;border:2px solid var(--card2);
+    background:#0f172a;color:var(--text);font-size:1.1rem;text-align:center;outline:none}
+  .type-in:focus{border-color:var(--accent)}
+
+  .feedback{margin-top:16px;padding:14px;border-radius:12px;text-align:center;font-size:.95rem}
+  .feedback.ok{background:rgba(34,197,94,.15);color:#86efac}
+  .feedback.bad{background:rgba(239,68,68,.15);color:#fca5a5}
+  .feedback b{color:var(--text)}
+  .feedback .pron{color:var(--gold);font-weight:700}
+
+  .next-btn{width:100%;background:var(--accent);color:#fff;border:none;padding:14px;
+    border-radius:12px;font-weight:700;cursor:pointer;margin-top:14px;font-size:1rem}
+  .next-btn:hover{filter:brightness(1.1)}
+
+  .result{text-align:center}
+  .result .big{font-size:3.4rem;font-weight:800;margin:6px 0}
+  .result .msg{color:var(--muted);margin-bottom:18px}
+  .miss{background:var(--card2);border-radius:12px;padding:12px;margin-top:8px;text-align:left;max-height:260px;overflow:auto}
+  .miss h4{font-size:.85rem;color:var(--muted);margin-bottom:8px}
+  .miss .item{display:flex;justify-content:space-between;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.9rem}
+  .miss .item span:first-child{font-weight:700}
+  .miss .item .p{color:var(--gold);font-size:.8rem}
+  .errbox{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:14px;text-align:left;font-size:.85rem;color:#fca5a5;margin:14px 0}
+  .errbox b{color:var(--text)}
+  footer{text-align:center;color:var(--muted);font-size:.72rem;padding:16px 0}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>Jogo de <span>Inglês</span></h1>
+    <p id="subtitle">Lucas <span id="wcount" class="badge">carregando…</span></p>
+  </header>
+
+  <!-- LOADING -->
+  <div id="loading" class="card center">
+    <div class="spinner"></div>
+    <div>Carregando palavras da sua planilha…</div>
+  </div>
+
+  <!-- ERRO -->
+  <div id="errscr" class="card hidden">
+    <div class="center" style="padding:14px 6px">
+      <div style="font-size:2.4rem">📡</div>
+      <h3 style="margin:8px 0">Não consegui ler a planilha</h3>
+    </div>
+    <div class="errbox">
+      Provável causa: a planilha não está compartilhada como pública para leitura, ou você está sem internet na primeira abertura.<br><br>
+      <b>Como resolver (uma vez só):</b><br>
+      1. Abra a planilha <b>BD_vocabulario_ingles</b> no Google Sheets.<br>
+      2. Botão <b>Compartilhar</b> → em "Acesso geral" escolha <b>Qualquer pessoa com o link</b> → função <b>Leitor</b>.<br>
+      3. Salve e recarregue este jogo.
+    </div>
+    <button class="btn-primary" id="retryBtn">🔄 Tentar de novo</button>
+  </div>
+
+  <!-- HOME -->
+  <div id="home" class="card hidden">
+    <div class="modes">
+      <button class="mode-btn" data-mode="en_pt"><span class="emoji">🇬🇧</span><span><span class="t">Múltipla escolha &middot; EN → PT</span><br><span class="d">Veja a palavra em inglês, escolha a tradução</span></span></button>
+      <button class="mode-btn" data-mode="pt_en"><span class="emoji">🇧🇷</span><span><span class="t">Múltipla escolha &middot; PT → EN</span><br><span class="d">Veja o português, escolha o inglês</span></span></button>
+      <button class="mode-btn" data-mode="type"><span class="emoji">⌨️</span><span><span class="t">Digitar a tradução</span><br><span class="d">Escreva a resposta você mesmo</span></span></button>
+      <button class="mode-btn" data-mode="pron"><span class="emoji">🗣️</span><span><span class="t">Pronúncia</span><br><span class="d">Fixe o som: como se fala a palavra</span></span></button>
+      <button class="mode-btn" data-mode="mix"><span class="emoji">🎲</span><span><span class="t">Modo misto</span><br><span class="d">Embaralha tudo &mdash; revisão de verdade</span></span></button>
+    </div>
+
+    <div class="row">
+      <label>Nível</label>
+      <div class="chips" id="levelChips"></div>
+    </div>
+    <div class="lvlhint" id="lvlHint"></div>
+
+    <div class="row">
+      <label>Palavras por rodada</label>
+      <div class="chips" id="lenChips">
+        <button class="chip" data-len="10">10</button>
+        <button class="chip sel" data-len="20">20</button>
+        <button class="chip" data-len="40">40</button>
+        <button class="chip" data-len="all">Todas</button>
+      </div>
+    </div>
+
+    <button class="btn-primary" id="startBtn">▶ Começar</button>
+
+    <div class="stats-mini">
+      <div><b id="stTotal">0</b>respondidas</div>
+      <div><b id="stAcc">0%</b>acerto geral</div>
+      <div><b id="stHard">0</b>palavras difíceis</div>
+    </div>
+    <button class="btn-ghost" id="reloadBtn">🔃 Atualizar palavras da planilha</button>
+    <button class="btn-ghost" id="resetBtn">🗑️ Reset &mdash; apagar todo o progresso (recomeçar do zero)</button>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="card hidden">
+    <div class="topbar">
+      <span id="qCount">1 / 20</span>
+      <span class="streak" id="qStreak">🔥 0</span>
+      <span class="score" id="qScore">✔ 0</span>
+    </div>
+    <div class="progress"><i id="qBar"></i></div>
+    <div id="qBody"></div>
+    <button class="btn-ghost" id="quitBtn" style="margin-top:18px">← Sair para o menu</button>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" class="card hidden">
+    <div class="result">
+      <div id="rEmoji" style="font-size:3rem">🎉</div>
+      <div class="big" id="rPct">0%</div>
+      <div class="msg" id="rMsg"></div>
+      <div class="miss hidden" id="rMiss"></div>
+    </div>
+    <button class="btn-primary" id="againBtn" style="margin-top:18px">🔁 Jogar de novo</button>
+    <button class="btn-ghost" id="homeBtn">🏠 Voltar ao menu</button>
+  </div>
+
+  <footer>Feito para o Lucas aprender inglês mais rápido &middot; lê da planilha BD_vocabulario_ingles</footer>
+</div>
+
+<script>
+/* ====== FONTE DE DADOS: sua planilha do Google ====== */
+const SHEET_ID = '1FaJ_46Svmf62AttHV1WBbfMa5AvwCDYQn5vxFbU_9xo';
+const SHEET_NAME = 'Página1';
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(SHEET_NAME);
+const CACHE_KEY = 'lucas_words_cache_v2';
+const LS_KEY = 'lucas_ingles_progress_v1';
+
+let WORDS = [];      /* todas as palavras carregadas */
+let ACTIVE = [];     /* palavras do(s) nível(is) selecionado(s) */
+let LEVELS = [];     /* níveis distintos encontrados */
+let selLevels = new Set();  /* vazio = todos */
+
+/* ---------- parser de CSV (lida com vírgulas e aspas dentro das células) ---------- */
+function parseCSV(text){
+  const rows=[]; let row=[], field='', inQ=false, i=0;
+  while(i<text.length){
+    const c=text[i];
+    if(inQ){
+      if(c==='"'){ if(text[i+1]==='"'){ field+='"'; i+=2; continue; } inQ=false; i++; continue; }
+      field+=c; i++; continue;
+    }
+    if(c==='"'){ inQ=true; i++; continue; }
+    if(c===','){ row.push(field); field=''; i++; continue; }
+    if(c==='\r'){ i++; continue; }
+    if(c==='\n'){ row.push(field); rows.push(row); row=[]; field=''; i++; continue; }
+    field+=c; i++;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+/* identifica as colunas pelo CABEÇALHO (robusto a reordenação de colunas) */
+function rowsToWords(rows){
+  if(!rows.length) return [];
+  let headerIdx = rows.findIndex(r=> r.some(c=> (c||'').toLowerCase().includes('ingl')));
+  let cEn=1, cPt=2, cPron=3, cLvl=0;
+  if(headerIdx>=0){
+    const h=rows[headerIdx].map(c=>(c||'').toLowerCase().trim());
+    const findStem=(stems)=>{ for(let i=0;i<h.length;i++){ if(stems.some(s=>h[i].includes(s))) return i; } return -1; };
+    const ei=findStem(['ingl','english']);
+    const pi=findStem(['portug','trad']);
+    const pri=findStem(['pron','fala']);
+    const li=findStem(['nív','niv','level']);
+    if(ei>=0) cEn=ei;
+    if(pi>=0) cPt=pi;
+    cPron=pri; cLvl=li;
+  }
+  const startAt = headerIdx>=0 ? headerIdx+1 : 0;
+  const out=[];
+  for(let i=startAt;i<rows.length;i++){
+    const r=rows[i]; if(!r) continue;
+    const en=(r[cEn]||'').trim();
+    const pt=(r[cPt]||'').trim();
+    const pron=(cPron>=0 ? (r[cPron]||'') : '').trim();
+    const level=(cLvl>=0 ? (r[cLvl]||'') : '').trim();
+    if(!en||!pt) continue;
+    out.push({level, en, pt, pron});
+  }
+  return out;
+}
+async function loadWords(){
+  try{
+    const res = await fetch(CSV_URL+'&_t='+Date.now(), {cache:'no-store'});
+    if(!res.ok) throw new Error('http '+res.status);
+    const txt = await res.text();
+    const w = rowsToWords(parseCSV(txt));
+    if(!w.length) throw new Error('vazio');
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify(w)); }catch(e){}
+    return {words:w, source:'online'};
+  }catch(e){
+    try{ const c=JSON.parse(localStorage.getItem(CACHE_KEY)); if(c&&c.length) return {words:c, source:'cache'}; }catch(e2){}
+    return {words:null, source:'fail'};
+  }
+}
+
+/* ---------- progresso persistente ---------- */
+function loadProg(){
+  try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {total:0,correct:0,perWord:{}}; }
+  catch(e){ return {total:0,correct:0,perWord:{}}; }
+}
+function saveProg(p){ try{ localStorage.setItem(LS_KEY, JSON.stringify(p)); }catch(e){} }
+let prog = loadProg();
+
+function refreshHomeStats(){
+  document.getElementById('stTotal').textContent = prog.total;
+  document.getElementById('stAcc').textContent = prog.total ? Math.round(prog.correct/prog.total*100)+'%' : '0%';
+  const hard = Object.values(prog.perWord).filter(w=> (w.wrong||0) > (w.right||0)).length;
+  document.getElementById('stHard').textContent = hard;
+}
+
+/* ---------- níveis ---------- */
+function getActive(){ return selLevels.size ? WORDS.filter(w=>selLevels.has(w.level)) : WORDS.slice(); }
+function renderLevelChips(){
+  const box=document.getElementById('levelChips'); box.innerHTML='';
+  const mk=(label,sel)=>{ const b=document.createElement('button'); b.className='chip'+(sel?' sel':''); b.textContent=label; box.appendChild(b); return b; };
+  const allBtn=mk('Todos', selLevels.size===0);
+  allBtn.onclick=()=>{ selLevels.clear(); renderLevelChips(); };
+  LEVELS.forEach(lv=>{
+    const label = lv==='' ? 'Sem nível' : 'Nível '+lv;
+    const b=mk(label, selLevels.has(lv));
+    b.onclick=()=>{ selLevels.has(lv)?selLevels.delete(lv):selLevels.add(lv); renderLevelChips(); };
+  });
+  updateLvlHint();
+}
+function updateLvlHint(){
+  const n=getActive().length;
+  document.getElementById('lvlHint').textContent = n+' palavra'+(n===1?'':'s')+' na seleção';
+  document.getElementById('startBtn').disabled = n===0;
+}
+
+/* ---------- estado do jogo ---------- */
+let mode='en_pt', roundLen=20, deck=[], idx=0, score=0, streak=0, missed=[];
+
+document.querySelectorAll('.mode-btn').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.mode-btn').forEach(x=>x.classList.remove('sel'));
+    b.classList.add('sel'); mode=b.dataset.mode;
+  });
+});
+document.querySelector('.mode-btn').classList.add('sel');
+
+document.querySelectorAll('#lenChips .chip').forEach(c=>{
+  c.addEventListener('click',()=>{
+    document.querySelectorAll('#lenChips .chip').forEach(x=>x.classList.remove('sel'));
+    c.classList.add('sel'); roundLen = c.dataset.len==='all' ? 'all' : parseInt(c.dataset.len);
+  });
+});
+
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function buildDeck(){
+  const scored = ACTIVE.map(w=>{
+    const s = prog.perWord[w.en] || {right:0,wrong:0};
+    const weight = 1 + (s.wrong||0)*2 - (s.right||0)*0.3;
+    return {w, weight: Math.max(0.3, weight), r:Math.random()};
+  });
+  scored.sort((a,b)=> (b.weight - a.weight) || (a.r - b.r));
+  let n = roundLen==='all' ? ACTIVE.length : Math.min(roundLen, ACTIVE.length);
+  const pool = scored.slice(0, Math.min(ACTIVE.length, Math.max(n*2, n)));
+  return shuffle(pool).slice(0,n).map(x=>x.w);
+}
+
+function speak(text){
+  if(!('speechSynthesis' in window)) return;
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang='en-US'; u.rate=.9;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+function pickMode(){ return mode==='mix' ? ['en_pt','pt_en','type','pron'][Math.random()*4|0] : mode; }
+
+function distractors(correct, key, n){
+  const pool = shuffle(ACTIVE.filter(w=>w[key]!==correct[key])).slice(0,n).map(w=>w[key]);
+  return shuffle([...pool, correct[key]]);
+}
+
+function norm(s){ return (s||'').toLowerCase().trim().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9]/g,''); }
+
+function renderQuestion(){
+  const total = deck.length;
+  document.getElementById('qCount').textContent = (idx+1)+' / '+total;
+  document.getElementById('qScore').textContent = '✔ '+score;
+  document.getElementById('qStreak').textContent = '🔥 '+streak;
+  document.getElementById('qBar').style.width = (idx/total*100)+'%';
+
+  const w = deck[idx];
+  let m = pickMode();
+  if(m==='pron' && !w.pron) m='en_pt';
+  const body = document.getElementById('qBody');
+  body.innerHTML='';
+  const lvl = w.level!=='' ? `<span class="lvltag">Nv ${w.level}</span>` : '';
+
+  if(m==='en_pt' || m==='pt_en'){
+    const showKey = m==='en_pt' ? 'en' : 'pt';
+    const ansKey  = m==='en_pt' ? 'pt' : 'en';
+    const tag = m==='en_pt' ? 'Qual a tradução?' : 'Como se escreve em inglês?';
+    body.innerHTML = `<div class="tag">${tag}${lvl}</div>
+      <div class="prompt"><div class="word">${w[showKey]}</div>
+      ${m==='en_pt'?`<button class="speak" title="Ouvir">🔊</button>`:''}</div>
+      <div class="options"></div>`;
+    if(m==='en_pt') body.querySelector('.speak').onclick=()=>speak(w.en);
+    const opts = distractors(w, ansKey, 3);
+    const box = body.querySelector('.options');
+    box.dataset.answer = w[ansKey];
+    opts.forEach(o=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+      b.onclick=()=>choose(b,o===w[ansKey],w,box);
+      box.appendChild(b);
+    });
+  }
+  else if(m==='pron'){
+    body.innerHTML = `<div class="tag">Como se fala?${lvl}</div>
+      <div class="prompt"><div class="word">${w.en}</div>
+      <div class="sub">${w.pt}</div>
+      <button class="speak" title="Ouvir">🔊</button></div>
+      <div class="options"></div>`;
+    body.querySelector('.speak').onclick=()=>speak(w.en);
+    const withPron = ACTIVE.filter(x=>x.pron);
+    const wrong = shuffle(withPron.filter(x=>x.pron!==w.pron)).slice(0,3).map(x=>x.pron);
+    const opts = shuffle([...wrong, w.pron]);
+    const box = body.querySelector('.options');
+    box.dataset.answer = w.pron;
+    opts.forEach(o=>{
+      const b=document.createElement('button'); b.className='opt'; b.textContent=o;
+      b.onclick=()=>choose(b,o===w.pron,w,box);
+      box.appendChild(b);
+    });
+  }
+  else if(m==='type'){
+    const dir = Math.random()<0.5 ? 'en_pt' : 'pt_en';
+    const showKey = dir==='en_pt' ? 'en':'pt';
+    const ansKey  = dir==='en_pt' ? 'pt':'en';
+    const tag = dir==='en_pt' ? 'Digite a tradução em português' : 'Digite a palavra em inglês';
+    body.innerHTML = `<div class="tag">${tag}${lvl}</div>
+      <div class="prompt"><div class="word">${w[showKey]}</div>
+      ${dir==='en_pt'?`<button class="speak">🔊</button>`:''}</div>
+      <input class="type-in" id="typeIn" placeholder="sua resposta..." autocomplete="off" autocapitalize="off">
+      <button class="next-btn" id="checkBtn">Conferir</button>`;
+    if(dir==='en_pt') body.querySelector('.speak').onclick=()=>speak(w.en);
+    const inp = document.getElementById('typeIn'); inp.focus();
+    const check=()=>{
+      const ok = norm(inp.value)===norm(w[ansKey]);
+      inp.disabled=true; document.getElementById('checkBtn').remove();
+      afterAnswer(ok,w,body);
+    };
+    document.getElementById('checkBtn').onclick=check;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
+  }
+}
+
+function choose(btn, correct, w, box){
+  [...box.children].forEach(b=>b.disabled=true);
+  if(correct){ btn.classList.add('correct'); }
+  else{
+    btn.classList.add('wrong');
+    const target = box.dataset.answer;
+    [...box.children].forEach(b=>{ if(b.textContent===target) b.classList.add('correct'); });
+  }
+  afterAnswer(correct,w,document.getElementById('qBody'));
+}
+
+function afterAnswer(correct,w,body){
+  prog.total++; if(correct){ score++; streak++; prog.correct++; } else { streak=0; missed.push(w); }
+  const s = prog.perWord[w.en] || {right:0,wrong:0};
+  correct ? s.right++ : s.wrong++;
+  prog.perWord[w.en]=s; saveProg(prog);
+
+  const fb=document.createElement('div');
+  fb.className='feedback '+(correct?'ok':'bad');
+  fb.innerHTML = correct
+    ? `✅ Isso! <b>${w.en}</b> = ${w.pt} ${w.pron?`&middot; <span class="pron">${w.pron}</span>`:''}`
+    : `❌ Quase! <b>${w.en}</b> = <b>${w.pt}</b> ${w.pron?`&middot; fala: <span class="pron">${w.pron}</span>`:''}`;
+  body.appendChild(fb);
+  const nb=document.createElement('button'); nb.className='next-btn';
+  nb.textContent = idx+1>=deck.length ? 'Ver resultado →' : 'Próxima →';
+  nb.onclick=()=>{ idx++; document.getElementById('qBar').style.width=(idx/deck.length*100)+'%';
+    if(idx>=deck.length) finish(); else renderQuestion(); };
+  body.appendChild(nb); nb.focus();
+}
+
+function finish(){
+  const total=deck.length, pct = total? Math.round(score/total*100):0;
+  document.getElementById('quiz').classList.add('hidden');
+  const r=document.getElementById('result'); r.classList.remove('hidden');
+  document.getElementById('rPct').textContent = pct+'%';
+  document.getElementById('rEmoji').textContent = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
+  document.getElementById('rMsg').textContent = `${score} de ${total} certas` + (pct>=90?' — excelente!':pct>=70?' — muito bom!':pct>=50?' — continua assim!':' — revisa e tenta de novo!');
+  const miss=document.getElementById('rMiss');
+  if(missed.length){
+    miss.classList.remove('hidden');
+    miss.innerHTML='<h4>Palavras para revisar</h4>'+missed.map(w=>
+      `<div class="item"><span>${w.en}</span><span>${w.pt} <span class="p">${w.pron||''}</span></span></div>`).join('');
+  } else { miss.classList.add('hidden'); }
+  refreshHomeStats();
+}
+
+function start(){
+  ACTIVE = getActive();
+  if(!ACTIVE.length){ alert('Nenhuma palavra nesse nível. Escolha outro nível.'); return; }
+  deck=buildDeck(); idx=0; score=0; streak=0; missed=[];
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  renderQuestion();
+}
+function goHome(){
+  ['quiz','result','errscr','loading'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint();
+}
+document.getElementById('startBtn').onclick=start;
+document.getElementById('againBtn').onclick=start;
+document.getElementById('homeBtn').onclick=goHome;
+document.getElementById('quitBtn').onclick=goHome;
+
+document.getElementById('resetBtn').onclick=()=>{
+  if(confirm('Apagar TODO o progresso salvo? Isso zera acertos, erros e palavras difíceis — bom para outra pessoa recomeçar do zero.')){
+    localStorage.removeItem(LS_KEY);
+    prog = loadProg(); refreshHomeStats();
+    alert('Progresso apagado! Tudo zerado. ✨');
+  }
+};
+document.getElementById('reloadBtn').onclick=()=>init(true);
+document.getElementById('retryBtn').onclick=()=>init(true);
+
+/* ---------- inicialização: busca as palavras e mostra o menu ---------- */
+async function init(force){
+  ['home','quiz','result','errscr'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('loading').classList.remove('hidden');
+  const badge=document.getElementById('wcount');
+  badge.className='badge'; badge.textContent='carregando…';
+
+  const {words, source} = await loadWords();
+  document.getElementById('loading').classList.add('hidden');
+
+  if(!words){
+    document.getElementById('errscr').classList.remove('hidden');
+    return;
+  }
+  WORDS = words;
+  LEVELS = [...new Set(WORDS.map(w=>w.level))].sort((a,b)=>{
+    const na=parseFloat(a), nb=parseFloat(b);
+    if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+    return String(a).localeCompare(String(b));
+  });
+  selLevels.clear();
+  renderLevelChips();
+  badge.textContent = WORDS.length+' palavras'+(source==='cache'?' (offline)':'');
+  badge.className = 'badge '+(source==='cache'?'cache':'on');
+  refreshHomeStats();
+  document.getElementById('home').classList.remove('hidden');
+}
+init();
+</script>
+</body>
+</html>
