@@ -119,6 +119,19 @@
     border-radius:12px;font-weight:700;cursor:pointer;margin-top:14px;font-size:1rem}
   .next-btn:hover{filter:brightness(1.1)}
 
+  .exwrap{margin:-6px 0 16px}
+  .ex-btn{width:100%;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.4);
+    color:var(--gold);padding:11px;border-radius:12px;cursor:pointer;font-weight:700;font-size:.92rem}
+  .ex-btn:hover{background:rgba(251,191,36,.2)}
+  .ex-panel{margin-top:10px;background:var(--card2);border-radius:12px;padding:6px 4px}
+  .ex-row{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.05)}
+  .ex-row:last-child{border-bottom:none}
+  .ex-text{flex:1;font-size:.95rem;text-align:left}
+  .ex-text .lbl{display:block;font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px}
+  .ex-listen{flex:none;background:var(--card);border:none;color:var(--text);width:38px;height:38px;
+    border-radius:50%;cursor:pointer;font-size:1.05rem}
+  .ex-listen:hover{background:var(--accent)}
+
   .result{text-align:center}
   .result .big{font-size:3.4rem;font-weight:800;margin:6px 0}
   .result .msg{color:var(--muted);margin-bottom:18px}
@@ -259,7 +272,7 @@ function parseCSV(text){
 function rowsToWords(rows){
   if(!rows.length) return [];
   let headerIdx = rows.findIndex(r=> r.some(c=> (c||'').toLowerCase().includes('ingl')));
-  let cEn=1, cPt=2, cPron=3, cLvl=0;
+  let cEn=1, cPt=2, cPron=3, cLvl=0, cAff=-1, cNeg=-1, cQ=-1;
   if(headerIdx>=0){
     const h=rows[headerIdx].map(c=>(c||'').toLowerCase().trim());
     const findStem=(stems)=>{ for(let i=0;i<h.length;i++){ if(stems.some(s=>h[i].includes(s))) return i; } return -1; };
@@ -268,6 +281,7 @@ function rowsToWords(rows){
     const pri=findStem(['pron','fala']);
     const li=findStem(['nív','niv','level']);
     if(ei>=0) cEn=ei; if(pi>=0) cPt=pi; cPron=pri; cLvl=li;
+    cAff=findStem(['afirmat']); cNeg=findStem(['negat']); cQ=findStem(['pergunt','interrog','question']);
   }
   const startAt = headerIdx>=0 ? headerIdx+1 : 0;
   const out=[];
@@ -278,7 +292,10 @@ function rowsToWords(rows){
     const pron=(cPron>=0 ? (r[cPron]||'') : '').trim();
     const level=(cLvl>=0 ? (r[cLvl]||'') : '').trim();
     if(!en||!pt) continue;
-    out.push({level, en, pt, pron});
+    const examples=[];
+    const addEx=(label,idx)=>{ if(idx>=0){ const t=(r[idx]||'').trim(); if(t) examples.push({label, text:t}); } };
+    addEx('Afirmativa',cAff); addEx('Negativa',cNeg); addEx('Pergunta',cQ);
+    out.push({level, en, pt, pron, examples});
   }
   return out;
 }
@@ -477,6 +494,27 @@ function renderQuestion(){
     document.getElementById('checkBtn').onclick=check;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
   }
+  insertExamples(body, w);
+}
+
+/* botão "Ver exemplo" (antes de responder) com as frases da planilha + áudio */
+function insertExamples(body, w){
+  if(!w.examples || !w.examples.length) return;
+  const prompt = body.querySelector('.prompt'); if(!prompt) return;
+  const wrap=document.createElement('div'); wrap.className='exwrap';
+  const btn=document.createElement('button'); btn.type='button'; btn.className='ex-btn'; btn.textContent='💡 Ver exemplo';
+  const panel=document.createElement('div'); panel.className='ex-panel hidden';
+  w.examples.forEach(ex=>{
+    const row=document.createElement('div'); row.className='ex-row';
+    const t=document.createElement('div'); t.className='ex-text';
+    t.innerHTML='<span class="lbl">'+ex.label+'</span>'+ex.text;
+    const sk=document.createElement('button'); sk.type='button'; sk.className='ex-listen'; sk.textContent='🔊';
+    sk.onclick=()=>speak(ex.text);
+    row.appendChild(t); row.appendChild(sk); panel.appendChild(row);
+  });
+  btn.onclick=()=>{ const hid=panel.classList.toggle('hidden'); btn.textContent = hid?'💡 Ver exemplo':'🙈 Esconder exemplo'; };
+  wrap.appendChild(btn); wrap.appendChild(panel);
+  prompt.after(wrap);
 }
 
 function choose(btn, correct, w, box){
