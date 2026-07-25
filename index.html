@@ -2,13 +2,21 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Jogo de Inglês do Lucas</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>English with Lucas</title>
+<meta name="theme-color" content="#04305B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="English with Lucas">
+<link rel="apple-touch-icon" href="avatar.png">
+<link rel="icon" href="avatar.png">
+<link rel="manifest" href="manifest.json">
 <style>
   :root{
-    --bg1:#0f172a; --bg2:#1e1b4b; --card:#1e293b; --card2:#334155;
-    --accent:#6366f1; --accent2:#818cf8; --ok:#22c55e; --bad:#ef4444;
-    --text:#f1f5f9; --muted:#94a3b8; --gold:#fbbf24;
+    --bg1:#04305b; --bg2:#031f3d; --card:#0b2f52; --card2:#153f68;
+    --accent:#f8800e; --accent2:#ffa63c; --ok:#22c55e; --bad:#ef4444;
+    --text:#f1f5f9; --muted:#9db6d1; --gold:#fbbf24;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{
@@ -18,10 +26,14 @@
     display:flex;justify-content:center;align-items:flex-start;padding:16px;
   }
   .app{width:100%;max-width:560px}
-  header{text-align:center;padding:12px 0 20px}
-  header h1{font-size:1.6rem;font-weight:800;letter-spacing:-.5px}
-  header h1 span{color:var(--accent2)}
-  header p{color:var(--muted);font-size:.9rem;margin-top:4px}
+  header{text-align:center;padding:8px 0 18px}
+  .brand{display:flex;flex-direction:column;align-items:center;gap:10px}
+  .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;
+    border:3px solid var(--accent);box-shadow:0 8px 24px rgba(248,128,14,.35),0 0 0 6px rgba(248,128,14,.12)}
+  .avatar-sm{width:66px;height:66px;margin:0 auto 6px}
+  header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
+  header h1 span{color:var(--accent);}
+  header p{color:var(--muted);font-size:.9rem;margin-top:2px}
   .badge{font-size:.7rem;padding:2px 8px;border-radius:99px;background:var(--card2);color:var(--muted);margin-left:6px}
   .badge.on{color:#86efac}
   .badge.cache{color:var(--gold)}
@@ -109,7 +121,8 @@
     background:#0f172a;color:var(--text);font-size:1.1rem;text-align:center;outline:none}
   .type-in:focus{border-color:var(--accent)}
 
-  .feedback{margin-top:16px;padding:14px;border-radius:12px;text-align:center;font-size:.95rem}
+  .feedback{margin-top:16px;padding:14px;border-radius:12px;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:11px;text-align:left}
+  .fb-av{width:46px;height:46px;border-radius:50%;flex:none;border:2px solid currentColor}
   .feedback.ok{background:rgba(34,197,94,.15);color:#86efac}
   .feedback.bad{background:rgba(239,68,68,.15);color:#fca5a5}
   .feedback b{color:var(--text)}
@@ -159,8 +172,13 @@
 <body>
 <div class="app">
   <header>
-    <h1>Jogo de <span>Inglês</span></h1>
-    <p id="subtitle">Lucas <span id="wcount" class="badge">carregando…</span></p>
+    <div class="brand">
+      <img class="avatar" src="avatar.png" alt="Lucas">
+      <div>
+        <h1>English with <span>Lucas</span></h1>
+        <p id="subtitle">Vocabulário <span id="wcount" class="badge">carregando…</span></p>
+      </div>
+    </div>
   </header>
 
   <!-- LOADING -->
@@ -238,6 +256,7 @@
   <!-- RESULT -->
   <div id="result" class="card hidden">
     <div class="result">
+      <img id="avResult" class="avatar avatar-sm" src="avatar.png" alt="Lucas">
       <div id="rEmoji" style="font-size:3rem">🎉</div>
       <div class="big" id="rPct">0%</div>
       <div class="msg" id="rMsg"></div>
@@ -247,7 +266,7 @@
     <button class="btn-ghost" id="homeBtn">🏠 Voltar ao menu</button>
   </div>
 
-  <footer>Feito para o Lucas aprender inglês mais rápido &middot; lê da planilha BD_vocabulario_ingles</footer>
+  <footer>English with Lucas &middot; feito com carinho para a família 🧡</footer>
 </div>
 
 <script>
@@ -257,6 +276,8 @@ const SHEET_NAME = 'Página1';
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(SHEET_NAME);
 const CACHE_KEY = 'lucas_words_cache_v2';
 const LS_KEY = 'lucas_ingles_progress_v1';
+const AV_WIN="avatar_win.png";
+const AV_FAIL="avatar_fail.png";
 
 let WORDS = [], ACTIVE = [], LEVELS = [];
 let selLevels = new Set();      /* vazio = todos */
@@ -579,7 +600,7 @@ function afterAnswer(correct,w,body,answerText){
 
   const fb=document.createElement('div');
   fb.className='feedback '+(correct?'ok':'bad');
-  fb.innerHTML = correct ? '✅ Certo!' : ('❌ Ops!' + (answerText?(' Resposta: <b>'+esc(answerText)+'</b>'):''));
+  fb.innerHTML = '<img class="fb-av" alt="" src="'+(correct?AV_WIN:AV_FAIL)+'"><span>'+(correct ? '✅ Certo!' : ('❌ Ops!' + (answerText?(' Resposta: <b>'+esc(answerText)+'</b>'):'')))+'</span>';
   body.appendChild(fb);
 
   const ex=buildExamples(w); if(ex) body.appendChild(ex);
@@ -597,6 +618,7 @@ function finish(){
   const r=document.getElementById('result'); r.classList.remove('hidden');
   document.getElementById('rPct').textContent = pct+'%';
   document.getElementById('rEmoji').textContent = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
+  document.getElementById('avResult').src = pct>=50?AV_WIN:AV_FAIL;
   document.getElementById('rMsg').textContent = `${score} de ${total} certas` + (pct>=90?' — excelente!':pct>=70?' — muito bom!':pct>=50?' — continua assim!':' — revisa e tenta de novo!');
   const miss=document.getElementById('rMiss');
   if(missed.length){
