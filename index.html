@@ -3,12 +3,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>English with Lucas</title>
+<title>Bora de Inglês</title>
+<meta name="description" content="Jogo de vocabulário de inglês — by Lucas Marinho">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Bora de Inglês">
+<meta property="og:description" content="Jogo de vocabulário de inglês — by Lucas Marinho">
+<meta property="og:image" content="https://lucas-marinho-fpa.github.io/Auto_Curso_Ingl-s/avatar.png">
+<meta property="og:url" content="https://lucas-marinho-fpa.github.io/Auto_Curso_Ingl-s/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Bora de Inglês">
+<meta name="twitter:image" content="https://lucas-marinho-fpa.github.io/Auto_Curso_Ingl-s/avatar.png">
 <meta name="theme-color" content="#04305B">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="English with Lucas">
+<meta name="apple-mobile-web-app-title" content="Bora de Inglês">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" href="avatar.png">
 <link rel="manifest" href="manifest.json">
@@ -37,6 +46,7 @@
   .reaction .ans{display:block;font-size:.9rem;font-weight:700;color:var(--text);margin-top:3px}
   header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
   header h1 span{color:var(--accent);}
+  .byline{font-size:.78rem;color:var(--muted);font-weight:600;margin-top:2px;letter-spacing:.3px}
   header p{color:var(--muted);font-size:.9rem;margin-top:2px}
   .badge{font-size:.7rem;padding:2px 8px;border-radius:99px;background:var(--card2);color:var(--muted);margin-left:6px}
   .badge.on{color:#86efac}
@@ -187,8 +197,11 @@
   <div id="topProgress" class="progress hidden" style="margin:0 0 12px"><i id="qBar"></i></div>
   <header>
     <div class="brand">
-      <img class="avatar" id="avTop" src="avatar.png" alt="Lucas">
-      <h1 id="brandText">English with <span>Lucas</span></h1>
+      <img class="avatar" id="avTop" src="avatar.png" alt="Lucas Marinho">
+      <div id="brandText">
+        <h1>Bora de <span>Inglês</span></h1>
+        <div class="byline">by Lucas Marinho</div>
+      </div>
       <div id="reaction" class="reaction hidden"></div>
     </div>
   </header>
@@ -282,7 +295,7 @@
     <button class="btn-ghost" id="homeBtn">🏠 Voltar ao menu</button>
   </div>
 
-  <footer>English with Lucas &middot; feito com carinho para a família 🧡</footer>
+  <footer>Bora de Inglês &middot; by Lucas Marinho 🧡</footer>
 </div>
 
 <script>
