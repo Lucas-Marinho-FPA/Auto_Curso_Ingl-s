@@ -31,6 +31,10 @@
   .avatar{width:96px;height:96px;border-radius:50%;object-fit:cover;display:block;
     border:3px solid var(--accent);box-shadow:0 8px 24px rgba(248,128,14,.35),0 0 0 6px rgba(248,128,14,.12)}
   .avatar-sm{width:66px;height:66px;margin:0 auto 6px}
+  .reaction{font-weight:800;font-size:1.5rem}
+  .reaction.ok{color:#86efac}
+  .reaction.bad{color:#fca5a5}
+  .reaction .ans{display:block;font-size:.9rem;font-weight:700;color:var(--text);margin-top:3px}
   header h1{font-size:1.5rem;font-weight:800;letter-spacing:-.5px}
   header h1 span{color:var(--accent);}
   header p{color:var(--muted);font-size:.9rem;margin-top:2px}
@@ -173,11 +177,9 @@
 <div class="app">
   <header>
     <div class="brand">
-      <img class="avatar" src="avatar.png" alt="Lucas">
-      <div>
-        <h1>English with <span>Lucas</span></h1>
-        <p id="subtitle">Vocabulário <span id="wcount" class="badge">carregando…</span></p>
-      </div>
+      <img class="avatar" id="avTop" src="avatar.png" alt="Lucas">
+      <h1 id="brandText">English with <span>Lucas</span></h1>
+      <div id="reaction" class="reaction hidden"></div>
     </div>
   </header>
 
@@ -237,7 +239,6 @@
       <div><b id="stAcc">0%</b>acerto geral</div>
       <div><b id="stHard">0</b>palavras difíceis</div>
     </div>
-    <button class="btn-ghost" id="reloadBtn">🔃 Atualizar palavras da planilha</button>
     <button class="btn-ghost" id="resetBtn">🗑️ Reset &mdash; apagar todo o progresso (recomeçar do zero)</button>
   </div>
 
@@ -249,7 +250,9 @@
       <span class="score" id="qScore">✔ 0</span>
     </div>
     <div class="progress"><i id="qBar"></i></div>
-    <div id="qBody"></div>
+    <div id="qExamples"></div>
+    <div id="qQuestion"></div>
+    <div id="qNext"></div>
     <button class="btn-ghost" id="quitBtn" style="margin-top:18px">← Sair para o menu</button>
   </div>
 
@@ -278,6 +281,23 @@ const CACHE_KEY = 'lucas_words_cache_v2';
 const LS_KEY = 'lucas_ingles_progress_v1';
 const AV_WIN="avatar_win.png";
 const AV_FAIL="avatar_fail.png";
+const AV_COVER="avatar.png";
+/* controla o avatar e o texto do topo (capa / reação) */
+function setTop(state, correct, answerText){
+  const av=document.getElementById('avTop');
+  const bt=document.getElementById('brandText');
+  const rc=document.getElementById('reaction');
+  if(state==='answer'){
+    av.src = correct?AV_WIN:AV_FAIL;
+    bt.classList.add('hidden');
+    rc.className='reaction '+(correct?'ok':'bad');
+    rc.innerHTML = (correct?'Certo!':'Errado!') + (answerText?(' <span class="ans">'+esc(answerText)+'</span>'):'');
+  } else {
+    av.src = AV_COVER;
+    rc.className='reaction hidden'; rc.innerHTML='';
+    bt.classList.toggle('hidden', state!=='home');
+  }
+}
 
 let WORDS = [], ACTIVE = [], LEVELS = [];
 let selLevels = new Set();      /* vazio = todos */
@@ -486,7 +506,10 @@ function renderQuestion(){
 
   const w = deck[idx];
   const m = pickMode();
-  const body = document.getElementById('qBody');
+  document.getElementById('qExamples').innerHTML='';
+  document.getElementById('qNext').innerHTML='';
+  setTop('quiz');
+  const body = document.getElementById('qQuestion');
   body.innerHTML='';
   const lvl = w.level!=='' ? '<span class="lvltag">Nv '+w.level+'</span>' : '';
 
@@ -525,7 +548,7 @@ function renderQuestion(){
     const check=()=>{
       const ok = isCorrect(inp.value, w[ansKey]);
       inp.disabled=true; document.getElementById('checkBtn').remove();
-      afterAnswer(ok,w,body,w[ansKey]);
+      afterAnswer(ok,w,w[ansKey]);
     };
     document.getElementById('checkBtn').onclick=check;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
@@ -589,27 +612,28 @@ function choose(btn, correct, w, box){
     const target = box.dataset.answer;
     [...box.children].forEach(b=>{ if(b.textContent===target) b.classList.add('correct'); });
   }
-  afterAnswer(correct,w,document.getElementById('qBody'),null);
+  afterAnswer(correct,w,null);
 }
 
-function afterAnswer(correct,w,body,answerText){
+function afterAnswer(correct,w,answerText){
   prog.total++; if(correct){ score++; streak++; prog.correct++; } else { streak=0; missed.push(w); }
   const s = prog.perWord[w.en] || {right:0,wrong:0};
   correct ? s.right++ : s.wrong++;
   prog.perWord[w.en]=s; saveProg(prog);
 
-  const fb=document.createElement('div');
-  fb.className='feedback '+(correct?'ok':'bad');
-  fb.innerHTML = '<img class="fb-av" alt="" src="'+(correct?AV_WIN:AV_FAIL)+'"><span>'+(correct ? '✅ Certo!' : ('❌ Ops!' + (answerText?(' Resposta: <b>'+esc(answerText)+'</b>'):'')))+'</span>';
-  body.appendChild(fb);
+  /* topo: avatar reage + Certo!/Errado! (resposta certa aparece quando erra no modo digitar) */
+  setTop('answer', correct, correct?null:answerText);
 
-  const ex=buildExamples(w); if(ex) body.appendChild(ex);
+  /* exemplos sobem (prioridade); a pergunta/opções ficam abaixo */
+  const ex=buildExamples(w);
+  const exHost=document.getElementById('qExamples'); exHost.innerHTML='';
+  if(ex) exHost.appendChild(ex);
 
   const nb=document.createElement('button'); nb.className='next-btn';
   nb.textContent = idx+1>=deck.length ? 'Ver resultado →' : 'Próxima →';
   nb.onclick=()=>{ idx++; document.getElementById('qBar').style.width=(idx/deck.length*100)+'%';
     if(idx>=deck.length) finish(); else renderQuestion(); };
-  body.appendChild(nb); nb.focus();
+  const nh=document.getElementById('qNext'); nh.innerHTML=''; nh.appendChild(nb); nb.focus();
 }
 
 function finish(){
@@ -619,6 +643,7 @@ function finish(){
   document.getElementById('rPct').textContent = pct+'%';
   document.getElementById('rEmoji').textContent = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
   document.getElementById('avResult').src = pct>=50?AV_WIN:AV_FAIL;
+  setTop('quiz');
   document.getElementById('rMsg').textContent = `${score} de ${total} certas` + (pct>=90?' — excelente!':pct>=70?' — muito bom!':pct>=50?' — continua assim!':' — revisa e tenta de novo!');
   const miss=document.getElementById('rMiss');
   if(missed.length){
@@ -640,7 +665,7 @@ function start(){
 }
 function goHome(){
   ['quiz','result','errscr','loading'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint();
+  document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint(); setTop('home');
 }
 document.getElementById('startBtn').onclick=start;
 document.getElementById('againBtn').onclick=start;
@@ -652,7 +677,6 @@ document.getElementById('resetBtn').onclick=()=>{
     alert('Progresso apagado! Tudo zerado. ✨');
   }
 };
-document.getElementById('reloadBtn').onclick=()=>init(true);
 document.getElementById('retryBtn').onclick=()=>init(true);
 
 /* ---------- init ---------- */
@@ -662,9 +686,8 @@ buildSingleDD('ddLen', LENS, ()=>roundLen, v=>{ roundLen=v; });
 async function init(force){
   ['home','quiz','result','errscr'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('loading').classList.remove('hidden');
-  const badge=document.getElementById('wcount'); badge.className='badge'; badge.textContent='carregando…';
 
-  const {words, source} = await loadWords();
+  const {words} = await loadWords();
   document.getElementById('loading').classList.add('hidden');
   if(!words){ document.getElementById('errscr').classList.remove('hidden'); return; }
 
@@ -676,9 +699,7 @@ async function init(force){
   });
   selLevels.clear();
   buildLevelDD();
-  badge.textContent = WORDS.length+' palavras'+(source==='cache'?' (offline)':'');
-  badge.className = 'badge '+(source==='cache'?'cache':'on');
-  refreshHomeStats(); updateLvlHint();
+  refreshHomeStats(); updateLvlHint(); setTop('home');
   document.getElementById('home').classList.remove('hidden');
 }
 init();
