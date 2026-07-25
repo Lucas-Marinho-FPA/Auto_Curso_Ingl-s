@@ -131,6 +131,13 @@
   .ex-text .lbl{display:block;font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px}
   .ex-text .hl{color:var(--gold);font-weight:800}
   .ex-pt{font-style:italic;color:var(--muted);font-size:.82rem;margin-top:3px}
+  .ex-pt .hl{color:var(--gold);font-weight:800;font-style:normal}
+  .ex-explain{padding:10px 12px 4px}
+  .explain-btn{width:100%;background:rgba(129,140,248,.12);border:1px solid rgba(129,140,248,.4);
+    color:var(--accent2);padding:10px;border-radius:10px;cursor:pointer;font-weight:700;font-size:.9rem}
+  .explain-btn:hover{background:rgba(129,140,248,.22)}
+  .explain-panel{margin-top:8px;background:#0b1120;border:1px solid rgba(129,140,248,.2);border-radius:10px;
+    padding:12px 14px;font-size:.9rem;line-height:1.55;color:var(--text);text-align:left}
   .ex-head{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;padding:8px 12px 4px}
   .ex-listen{flex:none;background:var(--card);border:none;color:var(--text);width:38px;height:38px;
     border-radius:50%;cursor:pointer;font-size:1.05rem}
@@ -276,7 +283,7 @@ function parseCSV(text){
 function rowsToWords(rows){
   if(!rows.length) return [];
   let headerIdx = rows.findIndex(r=> r.some(c=> (c||'').toLowerCase().includes('ingl')));
-  let cEn=1, cPt=2, cPron=3, cLvl=0, cAff=-1, cNeg=-1, cQ=-1;
+  let cEn=1, cPt=2, cPron=3, cLvl=0, cAff=-1, cNeg=-1, cQ=-1, cExpl=-1;
   if(headerIdx>=0){
     const h=rows[headerIdx].map(c=>(c||'').toLowerCase().trim());
     const findStem=(stems)=>{ for(let i=0;i<h.length;i++){ if(stems.some(s=>h[i].includes(s))) return i; } return -1; };
@@ -286,6 +293,7 @@ function rowsToWords(rows){
     const li=findStem(['nív','niv','level']);
     if(ei>=0) cEn=ei; if(pi>=0) cPt=pi; cPron=pri; cLvl=li;
     cAff=findStem(['afirmat']); cNeg=findStem(['negat']); cQ=findStem(['pergunt','interrog','question']);
+    cExpl=findStem(['explica','uso','concei']);
   }
   const startAt = headerIdx>=0 ? headerIdx+1 : 0;
   const out=[];
@@ -299,7 +307,8 @@ function rowsToWords(rows){
     const examples=[];
     const addEx=(label,idx)=>{ if(idx>=0){ const raw=(r[idx]||'').trim(); if(raw){ const k=raw.indexOf(';'); const en=(k>=0?raw.slice(0,k):raw).trim(); const pt=(k>=0?raw.slice(k+1):'').trim(); examples.push({label, en, pt}); } } };
     addEx('Afirmativa',cAff); addEx('Negativa',cNeg); addEx('Pergunta',cQ);
-    out.push({level, en, pt, pron, examples});
+    const explain=(cExpl>=0?(r[cExpl]||''):'').trim();
+    out.push({level, en, pt, pron, examples, explain});
   }
   return out;
 }
@@ -510,19 +519,44 @@ function highlight(sentence, word){
   try{ const re=new RegExp('('+wd.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\w*)','ig'); return safe.replace(re,'<span class="hl">$1</span>'); }
   catch(e){ return safe; }
 }
-/* bloco de exemplos, mostrado DEPOIS de responder */
+/* destaca na traducao a(s) palavra(s) correspondente(s) (usa a coluna Portugues) */
+function normA(s){ return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,''); }
+function highlightPT(sentence, ptDict){
+  const terms=String(ptDict).split(/[,;/]| e | ou /i).map(t=>normA(t).replace(/[^a-z0-9]/g,'')).filter(t=>t.length>=3);
+  if(!terms.length) return esc(sentence);
+  return esc(sentence).split(/(\s+)/).map(tok=>{
+    const bare=normA(tok).replace(/[^a-z0-9]/g,'');
+    if(bare.length<3) return tok;
+    for(const t of terms){
+      const n=Math.min(4, t.length, bare.length);
+      if(n>=3 && t.slice(0,n)===bare.slice(0,n)) return '<span class="hl">'+tok+'</span>';
+    }
+    return tok;
+  }).join('');
+}
+/* bloco de exemplos + explicacao, mostrado DEPOIS de responder */
 function buildExamples(w){
-  if(!w.examples || !w.examples.length) return null;
+  const hasEx = w.examples && w.examples.length;
+  if(!hasEx && !w.explain) return null;
   const ex=document.createElement('div'); ex.className='ex-panel';
-  const h=document.createElement('div'); h.className='ex-head'; h.textContent='Exemplos'; ex.appendChild(h);
-  w.examples.forEach(e=>{
-    const row=document.createElement('div'); row.className='ex-row';
-    const t=document.createElement('div'); t.className='ex-text';
-    t.innerHTML='<span class="lbl">'+e.label+'</span>'+highlight(e.en,w.en)+(e.pt?'<div class="ex-pt">'+esc(e.pt)+'</div>':'');
-    const sk=document.createElement('button'); sk.type='button'; sk.className='ex-listen'; sk.textContent='🔊';
-    sk.onclick=()=>speak(e.en);
-    row.appendChild(t); row.appendChild(sk); ex.appendChild(row);
-  });
+  if(hasEx){
+    const h=document.createElement('div'); h.className='ex-head'; h.textContent='Exemplos'; ex.appendChild(h);
+    w.examples.forEach(e=>{
+      const row=document.createElement('div'); row.className='ex-row';
+      const t=document.createElement('div'); t.className='ex-text';
+      t.innerHTML='<span class="lbl">'+e.label+'</span>'+highlight(e.en,w.en)+(e.pt?'<div class="ex-pt">'+highlightPT(e.pt,w.pt)+'</div>':'');
+      const sk=document.createElement('button'); sk.type='button'; sk.className='ex-listen'; sk.textContent='🔊';
+      sk.onclick=()=>speak(e.en);
+      row.appendChild(t); row.appendChild(sk); ex.appendChild(row);
+    });
+  }
+  if(w.explain){
+    const wrap=document.createElement('div'); wrap.className='ex-explain';
+    const b=document.createElement('button'); b.type='button'; b.className='explain-btn'; b.textContent='ℹ️ Como usar';
+    const p=document.createElement('div'); p.className='explain-panel hidden'; p.textContent=w.explain;
+    b.onclick=()=>{ const hid=p.classList.toggle('hidden'); b.textContent = hid?'ℹ️ Como usar':'✖ Fechar explicação'; };
+    wrap.appendChild(b); wrap.appendChild(p); ex.appendChild(wrap);
+  }
   return ex;
 }
 
