@@ -110,6 +110,11 @@
     border-radius:50%;cursor:pointer;font-size:1.3rem;margin-top:12px;transition:.15s;
   }
   .speak:hover{background:var(--accent)}
+  .qtag{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-weight:700}
+  .wordrow{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .speak-sm{background:var(--card2);border:none;color:var(--text);width:34px;height:34px;border-radius:50%;
+    cursor:pointer;font-size:1rem;display:inline-flex;align-items:center;justify-content:center;flex:none;transition:.15s}
+  .speak-sm:hover{background:var(--accent)}
 
   .options{display:grid;gap:10px}
   .opt{
@@ -175,6 +180,7 @@
 </head>
 <body>
 <div class="app">
+  <div id="topProgress" class="progress hidden" style="margin:0 0 12px"><i id="qBar"></i></div>
   <header>
     <div class="brand">
       <img class="avatar" id="avTop" src="avatar.png" alt="Lucas">
@@ -249,7 +255,6 @@
       <span class="streak" id="qStreak">🔥 0</span>
       <span class="score" id="qScore">✔ 0</span>
     </div>
-    <div class="progress"><i id="qBar"></i></div>
     <div id="qExamples"></div>
     <div id="qQuestion"></div>
     <div id="qNext"></div>
@@ -282,21 +287,27 @@ const LS_KEY = 'lucas_ingles_progress_v1';
 const AV_WIN="avatar_win.png";
 const AV_FAIL="avatar_fail.png";
 const AV_COVER="avatar.png";
-/* controla o avatar e o texto do topo (capa / reação) */
-function setTop(state, correct, answerText){
-  const av=document.getElementById('avTop');
-  const bt=document.getElementById('brandText');
-  const rc=document.getElementById('reaction');
-  if(state==='answer'){
-    av.src = correct?AV_WIN:AV_FAIL;
-    bt.classList.add('hidden');
-    rc.className='reaction '+(correct?'ok':'bad');
-    rc.innerHTML = (correct?'Certo!':'Errado!') + (answerText?(' <span class="ans">'+esc(answerText)+'</span>'):'');
-  } else {
-    av.src = AV_COVER;
-    rc.className='reaction hidden'; rc.innerHTML='';
-    bt.classList.toggle('hidden', state!=='home');
-  }
+/* topo dinâmico: capa+título (home), capa+pergunta (quiz), reação (resposta) */
+function _reset(showTitle){
+  document.getElementById('avTop').src=AV_COVER;
+  document.getElementById('brandText').classList.toggle('hidden', !showTitle);
+  const s=document.getElementById('reaction'); s.className='reaction hidden'; s.innerHTML='';
+}
+function topHome(){ _reset(true); }
+function topHide(){ _reset(false); }
+function topQuestion(tag, level){
+  document.getElementById('avTop').src=AV_COVER;
+  document.getElementById('brandText').classList.add('hidden');
+  const s=document.getElementById('reaction');
+  s.className='qtag';
+  s.innerHTML = tag + (level!==''?' <span class="lvltag">Nv '+level+'</span>':'');
+}
+function topAnswer(correct, answerText){
+  document.getElementById('avTop').src = correct?AV_WIN:AV_FAIL;
+  document.getElementById('brandText').classList.add('hidden');
+  const s=document.getElementById('reaction');
+  s.className='reaction '+(correct?'ok':'bad');
+  s.innerHTML = (correct?'Certo!':'Errado!') + (answerText?(' <span class="ans">'+esc(answerText)+'</span>'):'');
 }
 
 let WORDS = [], ACTIVE = [], LEVELS = [];
@@ -508,21 +519,21 @@ function renderQuestion(){
   const m = pickMode();
   document.getElementById('qExamples').innerHTML='';
   document.getElementById('qNext').innerHTML='';
-  setTop('quiz');
+  window.scrollTo(0,0);
   const body = document.getElementById('qQuestion');
   body.innerHTML='';
-  const lvl = w.level!=='' ? '<span class="lvltag">Nv '+w.level+'</span>' : '';
 
   if(m==='en_pt' || m==='pt_en'){
     const showKey = m==='en_pt' ? 'en' : 'pt';
     const ansKey  = m==='en_pt' ? 'pt' : 'en';
     const tag = m==='en_pt' ? 'Qual a tradução?' : 'Como se escreve em inglês?';
-    body.innerHTML = `<div class="tag">${tag}${lvl}</div>
-      <div class="prompt"><div class="word">${w[showKey]}</div>
+    topQuestion(tag, w.level);
+    body.innerHTML = `<div class="prompt">
+      <div class="wordrow"><span class="word">${w[showKey]}</span>${m==='en_pt'?`<button class="speak-sm" title="Ouvir">🔊</button>`:''}</div>
       ${m==='en_pt'&&w.pron?`<div class="pronq">${w.pron}</div>`:''}
-      ${m==='en_pt'?`<button class="speak" title="Ouvir">🔊</button>`:''}</div>
+      </div>
       <div class="options"></div>`;
-    if(m==='en_pt') body.querySelector('.speak').onclick=()=>speak(w.en);
+    if(m==='en_pt') body.querySelector('.speak-sm').onclick=()=>speak(w.en);
     const opts = distractors(w, ansKey, 3);
     const box = body.querySelector('.options');
     box.dataset.answer = w[ansKey];
@@ -537,13 +548,14 @@ function renderQuestion(){
     const showKey = dir==='en_pt' ? 'en':'pt';
     const ansKey  = dir==='en_pt' ? 'pt':'en';
     const tag = dir==='en_pt' ? 'Digite a tradução em português' : 'Digite a palavra em inglês';
-    body.innerHTML = `<div class="tag">${tag}${lvl}</div>
-      <div class="prompt"><div class="word">${w[showKey]}</div>
+    topQuestion(tag, w.level);
+    body.innerHTML = `<div class="prompt">
+      <div class="wordrow"><span class="word">${w[showKey]}</span>${dir==='en_pt'?`<button class="speak-sm" title="Ouvir">🔊</button>`:''}</div>
       ${dir==='en_pt'&&w.pron?`<div class="pronq">${w.pron}</div>`:''}
-      ${dir==='en_pt'?`<button class="speak">🔊</button>`:''}</div>
+      </div>
       <input class="type-in" id="typeIn" placeholder="sua resposta..." autocomplete="off" autocapitalize="off">
       <button class="next-btn" id="checkBtn">Conferir</button>`;
-    if(dir==='en_pt') body.querySelector('.speak').onclick=()=>speak(w.en);
+    if(dir==='en_pt') body.querySelector('.speak-sm').onclick=()=>speak(w.en);
     const inp = document.getElementById('typeIn'); inp.focus();
     const check=()=>{
       const ok = isCorrect(inp.value, w[ansKey]);
@@ -622,7 +634,7 @@ function afterAnswer(correct,w,answerText){
   prog.perWord[w.en]=s; saveProg(prog);
 
   /* topo: avatar reage + Certo!/Errado! (resposta certa aparece quando erra no modo digitar) */
-  setTop('answer', correct, correct?null:answerText);
+  topAnswer(correct, correct?null:answerText);
 
   /* exemplos sobem (prioridade); a pergunta/opções ficam abaixo */
   const ex=buildExamples(w);
@@ -633,7 +645,8 @@ function afterAnswer(correct,w,answerText){
   nb.textContent = idx+1>=deck.length ? 'Ver resultado →' : 'Próxima →';
   nb.onclick=()=>{ idx++; document.getElementById('qBar').style.width=(idx/deck.length*100)+'%';
     if(idx>=deck.length) finish(); else renderQuestion(); };
-  const nh=document.getElementById('qNext'); nh.innerHTML=''; nh.appendChild(nb); nb.focus();
+  const nh=document.getElementById('qNext'); nh.innerHTML=''; nh.appendChild(nb);
+  window.scrollTo({top:0, behavior:'smooth'});   /* mantém a visão no topo (avatar reagindo + exemplos) */
 }
 
 function finish(){
@@ -643,7 +656,8 @@ function finish(){
   document.getElementById('rPct').textContent = pct+'%';
   document.getElementById('rEmoji').textContent = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
   document.getElementById('avResult').src = pct>=50?AV_WIN:AV_FAIL;
-  setTop('quiz');
+  document.getElementById('topProgress').classList.add('hidden');
+  topHide();
   document.getElementById('rMsg').textContent = `${score} de ${total} certas` + (pct>=90?' — excelente!':pct>=70?' — muito bom!':pct>=50?' — continua assim!':' — revisa e tenta de novo!');
   const miss=document.getElementById('rMiss');
   if(missed.length){
@@ -661,11 +675,12 @@ function start(){
   document.getElementById('home').classList.add('hidden');
   document.getElementById('result').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
+  document.getElementById('topProgress').classList.remove('hidden');
   renderQuestion();
 }
 function goHome(){
-  ['quiz','result','errscr','loading'].forEach(id=>document.getElementById(id).classList.add('hidden'));
-  document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint(); setTop('home');
+  ['quiz','result','errscr','loading','topProgress'].forEach(id=>document.getElementById(id).classList.add('hidden'));
+  document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint(); topHome();
 }
 document.getElementById('startBtn').onclick=start;
 document.getElementById('againBtn').onclick=start;
@@ -699,7 +714,7 @@ async function init(force){
   });
   selLevels.clear();
   buildLevelDD();
-  refreshHomeStats(); updateLvlHint(); setTop('home');
+  refreshHomeStats(); updateLvlHint(); topHome();
   document.getElementById('home').classList.remove('hidden');
 }
 init();
