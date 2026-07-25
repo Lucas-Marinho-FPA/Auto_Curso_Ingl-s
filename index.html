@@ -88,6 +88,7 @@
   .prompt{text-align:center;padding:14px 8px 20px}
   .prompt .word{font-size:2.2rem;font-weight:800;line-height:1.2}
   .prompt .sub{color:var(--muted);margin-top:8px;font-size:.95rem}
+  .prompt .pronq{color:var(--muted);opacity:.55;font-size:.8rem;font-weight:600;margin-top:5px;letter-spacing:.3px}
   .speak{
     background:var(--card2);border:none;color:var(--text);width:46px;height:46px;
     border-radius:50%;cursor:pointer;font-size:1.3rem;margin-top:12px;transition:.15s;
@@ -128,6 +129,9 @@
   .ex-row:last-child{border-bottom:none}
   .ex-text{flex:1;font-size:.95rem;text-align:left}
   .ex-text .lbl{display:block;font-size:.66rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-bottom:2px}
+  .ex-text .hl{color:var(--gold);font-weight:800}
+  .ex-pt{font-style:italic;color:var(--muted);font-size:.82rem;margin-top:3px}
+  .ex-head{font-size:.68rem;text-transform:uppercase;letter-spacing:1px;color:var(--muted);font-weight:700;padding:8px 12px 4px}
   .ex-listen{flex:none;background:var(--card);border:none;color:var(--text);width:38px;height:38px;
     border-radius:50%;cursor:pointer;font-size:1.05rem}
   .ex-listen:hover{background:var(--accent)}
@@ -293,7 +297,7 @@ function rowsToWords(rows){
     const level=(cLvl>=0 ? (r[cLvl]||'') : '').trim();
     if(!en||!pt) continue;
     const examples=[];
-    const addEx=(label,idx)=>{ if(idx>=0){ const t=(r[idx]||'').trim(); if(t) examples.push({label, text:t}); } };
+    const addEx=(label,idx)=>{ if(idx>=0){ const raw=(r[idx]||'').trim(); if(raw){ const k=raw.indexOf(';'); const en=(k>=0?raw.slice(0,k):raw).trim(); const pt=(k>=0?raw.slice(k+1):'').trim(); examples.push({label, en, pt}); } } };
     addEx('Afirmativa',cAff); addEx('Negativa',cNeg); addEx('Pergunta',cQ);
     out.push({level, en, pt, pron, examples});
   }
@@ -462,6 +466,7 @@ function renderQuestion(){
     const tag = m==='en_pt' ? 'Qual a tradução?' : 'Como se escreve em inglês?';
     body.innerHTML = `<div class="tag">${tag}${lvl}</div>
       <div class="prompt"><div class="word">${w[showKey]}</div>
+      ${m==='en_pt'&&w.pron?`<div class="pronq">${w.pron}</div>`:''}
       ${m==='en_pt'?`<button class="speak" title="Ouvir">🔊</button>`:''}</div>
       <div class="options"></div>`;
     if(m==='en_pt') body.querySelector('.speak').onclick=()=>speak(w.en);
@@ -481,6 +486,7 @@ function renderQuestion(){
     const tag = dir==='en_pt' ? 'Digite a tradução em português' : 'Digite a palavra em inglês';
     body.innerHTML = `<div class="tag">${tag}${lvl}</div>
       <div class="prompt"><div class="word">${w[showKey]}</div>
+      ${dir==='en_pt'&&w.pron?`<div class="pronq">${w.pron}</div>`:''}
       ${dir==='en_pt'?`<button class="speak">🔊</button>`:''}</div>
       <input class="type-in" id="typeIn" placeholder="sua resposta..." autocomplete="off" autocapitalize="off">
       <button class="next-btn" id="checkBtn">Conferir</button>`;
@@ -489,32 +495,35 @@ function renderQuestion(){
     const check=()=>{
       const ok = isCorrect(inp.value, w[ansKey]);
       inp.disabled=true; document.getElementById('checkBtn').remove();
-      afterAnswer(ok,w,body);
+      afterAnswer(ok,w,body,w[ansKey]);
     };
     document.getElementById('checkBtn').onclick=check;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
   }
-  insertExamples(body, w);
 }
 
-/* botão "Ver exemplo" (antes de responder) com as frases da planilha + áudio */
-function insertExamples(body, w){
-  if(!w.examples || !w.examples.length) return;
-  const prompt = body.querySelector('.prompt'); if(!prompt) return;
-  const wrap=document.createElement('div'); wrap.className='exwrap';
-  const btn=document.createElement('button'); btn.type='button'; btn.className='ex-btn'; btn.textContent='💡 Ver exemplo';
-  const panel=document.createElement('div'); panel.className='ex-panel hidden';
-  w.examples.forEach(ex=>{
+/* escapa HTML e destaca a palavra estudada dentro da frase */
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function highlight(sentence, word){
+  const safe=esc(sentence); const wd=esc(String(word)).trim();
+  if(!wd) return safe;
+  try{ const re=new RegExp('('+wd.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\w*)','ig'); return safe.replace(re,'<span class="hl">$1</span>'); }
+  catch(e){ return safe; }
+}
+/* bloco de exemplos, mostrado DEPOIS de responder */
+function buildExamples(w){
+  if(!w.examples || !w.examples.length) return null;
+  const ex=document.createElement('div'); ex.className='ex-panel';
+  const h=document.createElement('div'); h.className='ex-head'; h.textContent='Exemplos'; ex.appendChild(h);
+  w.examples.forEach(e=>{
     const row=document.createElement('div'); row.className='ex-row';
     const t=document.createElement('div'); t.className='ex-text';
-    t.innerHTML='<span class="lbl">'+ex.label+'</span>'+ex.text;
+    t.innerHTML='<span class="lbl">'+e.label+'</span>'+highlight(e.en,w.en)+(e.pt?'<div class="ex-pt">'+esc(e.pt)+'</div>':'');
     const sk=document.createElement('button'); sk.type='button'; sk.className='ex-listen'; sk.textContent='🔊';
-    sk.onclick=()=>speak(ex.text);
-    row.appendChild(t); row.appendChild(sk); panel.appendChild(row);
+    sk.onclick=()=>speak(e.en);
+    row.appendChild(t); row.appendChild(sk); ex.appendChild(row);
   });
-  btn.onclick=()=>{ const hid=panel.classList.toggle('hidden'); btn.textContent = hid?'💡 Ver exemplo':'🙈 Esconder exemplo'; };
-  wrap.appendChild(btn); wrap.appendChild(panel);
-  prompt.after(wrap);
+  return ex;
 }
 
 function choose(btn, correct, w, box){
@@ -525,10 +534,10 @@ function choose(btn, correct, w, box){
     const target = box.dataset.answer;
     [...box.children].forEach(b=>{ if(b.textContent===target) b.classList.add('correct'); });
   }
-  afterAnswer(correct,w,document.getElementById('qBody'));
+  afterAnswer(correct,w,document.getElementById('qBody'),null);
 }
 
-function afterAnswer(correct,w,body){
+function afterAnswer(correct,w,body,answerText){
   prog.total++; if(correct){ score++; streak++; prog.correct++; } else { streak=0; missed.push(w); }
   const s = prog.perWord[w.en] || {right:0,wrong:0};
   correct ? s.right++ : s.wrong++;
@@ -536,12 +545,11 @@ function afterAnswer(correct,w,body){
 
   const fb=document.createElement('div');
   fb.className='feedback '+(correct?'ok':'bad');
-  fb.innerHTML = (correct
-    ? `✅ Isso! <b>${w.en}</b> = ${w.pt} ${w.pron?`&middot; <span class="pron">${w.pron}</span>`:''}`
-    : `❌ Quase! <b>${w.en}</b> = <b>${w.pt}</b> ${w.pron?`&middot; fala: <span class="pron">${w.pron}</span>`:''}`)
-    + `<br><button class="listen" type="button">🔊 Ouvir "${w.en}"</button>`;
+  fb.innerHTML = correct ? '✅ Certo!' : ('❌ Ops!' + (answerText?(' Resposta: <b>'+esc(answerText)+'</b>'):''));
   body.appendChild(fb);
-  fb.querySelector('.listen').onclick=()=>speak(w.en);
+
+  const ex=buildExamples(w); if(ex) body.appendChild(ex);
+
   const nb=document.createElement('button'); nb.className='next-btn';
   nb.textContent = idx+1>=deck.length ? 'Ver resultado →' : 'Próxima →';
   nb.onclick=()=>{ idx++; document.getElementById('qBar').style.width=(idx/deck.length*100)+'%';
