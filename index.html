@@ -301,7 +301,6 @@
       <div id="brandHome">
         <div class="brand-badge"><img src="icon.png" alt="Bora de Inglês"></div>
         <div class="brand-word">Bora de <span>Inglês</span></div>
-        <div class="byline">by Lucas Marinho</div>
       </div>
       <img class="avatar hidden" id="avTop" src="avatar.png" alt="Lucas">
       <div id="reaction" class="reaction hidden"></div>
@@ -459,7 +458,7 @@
     <button class="btn-ghost" id="homeBtn">🏠 Voltar ao menu</button>
   </div>
 
-  <footer>Bora de Inglês &middot; by Lucas Marinho 🧡 &middot; <b style="color:var(--accent2)">v2 · design premium</b></footer>
+  <footer>by Lucas Marinho 🧡</footer>
 </div>
 
 <script>
@@ -993,13 +992,8 @@ async function renderGuidedInfo(){
   }
   start.disabled=false; start.textContent='▶ Iniciar';
   const lvl = st.level===''?'Sem nível':'Nível '+st.level;
-  const steps = STAGE_ORDER.map(s=>{
-    const cls = s===st.stage ? 'on' : (STAGE_ORDER.indexOf(s)<STAGE_ORDER.indexOf(st.stage)?'done':'');
-    return '<span class="gi-step '+cls+'">'+STAGE_SHORT[s]+'</span>';
-  }).join('');
   box.innerHTML='<div class="gi-title">'+lvl+'</div>'+
-    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteWords.length+' palavras</div>'+
-    '<div class="gi-steps">'+steps+'</div>';
+    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteWords.length+' palavras</div>';
 }
 
 async function startGuided(){
