@@ -17,7 +17,7 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Bora de Inglês">
 <meta name="twitter:image" content="https://lucas-marinho-fpa.github.io/Bora_de_Ingles/og-image.png">
-<meta name="theme-color" content="#04305B">
+<meta name="theme-color" content="#06294b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -29,8 +29,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg1:#04305b; --bg2:#031f3d; --card:#0b2f52; --card2:#153f68;
-    --accent:#f8800e; --accent2:#ffa63c; --ok:#22c55e; --bad:#ef4444;
+    --bg1:#06294b; --bg2:#03162c; --card:#0a2c4d; --card2:#154273;
+    --accent:#fb6e0e; --accent2:#ff9c3f; --ok:#22c55e; --bad:#ef4444;
     --text:#f1f5f9; --muted:#9db6d1; --gold:#fbbf24;
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -273,6 +273,16 @@
   .guided-info .gi-step{font-size:.72rem;font-weight:800;color:var(--muted);background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:99px;padding:5px 11px}
   .guided-info .gi-step.on{color:#fff;background:var(--accent);border-color:var(--accent)}
   .guided-info .gi-step.done{color:#86efac;border-color:rgba(34,197,94,.4)}
+
+  /* ===== Marca: selo do "B" + Bora de Inglês (redesign) ===== */
+  .brand-badge{width:110px;height:110px;border-radius:26px;overflow:hidden;margin:0 auto;
+    background:#031c3b;border:3px solid var(--accent);
+    box-shadow:0 12px 34px rgba(251,110,14,.38),0 0 0 6px rgba(251,110,14,.10)}
+  .brand-badge img{width:100%;height:100%;display:block;object-fit:cover;transform:scale(1.08)}
+  .brand-word{font-family:'Fredoka','Segoe UI',sans-serif;font-weight:700;font-size:1.75rem;
+    margin-top:14px;letter-spacing:-.2px;line-height:1}
+  .brand-word span{color:var(--accent2)}
+  #brandHome .byline{margin-top:5px}
 </style>
 </head>
 <body>
@@ -281,7 +291,8 @@
   <header>
     <div class="brand">
       <div id="brandHome">
-        <img class="brand-logo" id="brandLogo" src="logo.png" alt="Bora de Inglês">
+        <div class="brand-badge"><img src="icon.png" alt="Bora de Inglês"></div>
+        <div class="brand-word">Bora de <span>Inglês</span></div>
         <div class="byline">by Lucas Marinho</div>
       </div>
       <img class="avatar hidden" id="avTop" src="avatar.png" alt="Lucas">
