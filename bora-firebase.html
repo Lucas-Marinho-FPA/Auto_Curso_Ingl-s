@@ -198,6 +198,37 @@
     font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--orange-soft)}
   .setup-card b{color:var(--cream)}
   .busy{opacity:.7;pointer-events:none}
+
+  /* Quiz */
+  .quiz-top{display:flex;align-items:center;gap:12px;margin:4px 0 18px}
+  .progress{flex:1;height:10px;background:var(--navy-800);border-radius:999px;overflow:hidden}
+  .progress i{display:block;height:100%;width:0;background:var(--orange);border-radius:999px;transition:width .3s}
+  .quiz-xp{font-family:"Fredoka";font-weight:700;color:var(--orange-soft);font-size:14px;white-space:nowrap}
+  .prompt{background:var(--navy-700);border:1px solid var(--line);border-radius:var(--radius);
+    padding:26px 18px;text-align:center;margin-bottom:6px}
+  .prompt .lbl{font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+  .prompt .word{font-family:"Fredoka";font-weight:700;font-size:34px;margin-top:6px;line-height:1.1}
+  .prompt .pron{color:var(--muted);font-size:15px;margin-top:4px}
+  .opts{display:flex;flex-direction:column;gap:11px;margin-top:16px}
+  .opt{appearance:none;border:1.5px solid var(--line);background:var(--navy-800);color:var(--cream);
+    font-family:"Fredoka";font-weight:600;font-size:17px;text-align:left;padding:15px 16px;border-radius:14px;
+    cursor:pointer;transition:transform .1s, background .15s, border-color .15s;display:flex;align-items:center;gap:10px}
+  .opt:hover{background:var(--navy-700)}
+  .opt:active{transform:scale(.99)}
+  .opt .mk{margin-left:auto;font-size:18px;opacity:0}
+  .opt.correct{border-color:var(--good);background:rgba(79,190,123,.16)}
+  .opt.correct .mk{opacity:1;color:var(--good)}
+  .opt.wrong{border-color:#e0607a;background:rgba(224,96,122,.14)}
+  .opt.wrong .mk{opacity:1;color:#ff8a9c}
+  .opts.locked .opt{pointer-events:none}
+  .quiz-foot{margin-top:auto;padding-top:14px}
+  .feedback{text-align:center;font-family:"Fredoka";font-weight:600;font-size:16px;min-height:24px;margin:12px 0 2px}
+  .feedback.ok{color:var(--good)} .feedback.no{color:#ff8a9c}
+  .quiz-end{text-align:center;margin:auto 0}
+  .quiz-end .big-emoji{font-size:56px}
+  .quiz-end h2{font-size:26px;margin:10px 0 4px}
+  .quiz-end .sum{color:var(--muted);font-size:16px;margin-bottom:4px}
+  .quiz-end .sum b{color:var(--orange-soft)}
 </style>
 </head>
 <body>
@@ -297,9 +328,9 @@
 
     <p class="subtitle" style="margin-bottom:10px">Complete os 3 módulos pra <b style="color:var(--cream)">dominar</b> cada palavra.</p>
     <div class="modules">
-      <button class="mod" onclick="toast('Módulo em construção — próximo passo do projeto 🚧')">
+      <button class="mod" onclick="openQuiz('enpt')">
         <div class="ic a">EN→PT</div>
-        <div><div class="t">Tradução (inglês → português)</div><div class="d">Reconhecer — múltipla escolha</div></div>
+        <div><div class="t">Tradução (inglês → português)</div><div class="d" id="mod-enpt-d">Reconhecer — múltipla escolha</div></div>
         <div class="stage" title="progresso"><i class="done"></i><i></i><i></i></div>
       </button>
       <button class="mod" onclick="toast('Módulo em construção — próximo passo do projeto 🚧')">
@@ -316,6 +347,43 @@
     <div class="spacer"></div>
     <div class="btn-row rank-btn">
       <button class="btn btn-primary" onclick="openRanking()">Ver ranking 🏆</button>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ (EN→PT) ===================== -->
+  <section class="screen" id="s-quiz">
+    <button class="back" onclick="go('s-home')">‹ Sair do módulo</button>
+
+    <div id="quiz-play">
+      <div class="quiz-top">
+        <div class="progress"><i id="quiz-bar"></i></div>
+        <div class="quiz-xp"><span id="quiz-xp">0</span> XP</div>
+      </div>
+      <div class="prompt">
+        <div class="lbl" id="quiz-lbl">Inglês → Português</div>
+        <div class="word" id="quiz-word">—</div>
+        <div class="pron" id="quiz-pron"></div>
+      </div>
+      <div class="opts" id="quiz-opts"></div>
+      <div class="quiz-foot">
+        <div class="feedback" id="quiz-feedback"></div>
+        <button class="btn btn-primary" id="quiz-next" style="display:none" onclick="nextQuestion()">Próxima</button>
+      </div>
+    </div>
+
+    <div id="quiz-loading" class="quiz-end" style="display:none">
+      <div class="big-emoji">📚</div>
+      <p class="sum">Carregando as palavras…</p>
+    </div>
+
+    <div id="quiz-done" class="quiz-end" style="display:none">
+      <div class="big-emoji">🎉</div>
+      <h2 id="done-title">Rodada concluída!</h2>
+      <p class="sum" id="done-sum"></p>
+      <div class="btn-row" style="margin-top:22px">
+        <button class="btn btn-primary" onclick="openQuiz('enpt')">Continuar estudando</button>
+        <button class="btn btn-ghost" onclick="go('s-home')">Voltar ao menu</button>
+      </div>
     </div>
   </section>
 
@@ -361,7 +429,7 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit, serverTimestamp }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit, serverTimestamp, increment, arrayUnion }
   from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
 
 /* =========================================================================
@@ -618,8 +686,162 @@ function toast(msg){
   clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),2400);
 }
 
+/* ===================== MÓDULO EN→PT (múltipla escolha) ===================== */
+const SHEET_URL = "https://docs.google.com/spreadsheets/d/1FaJ_46Svmf62AttHV1WBbfMa5AvwCDYQn5vxFbU_9xo/gviz/tq?tqx=out:csv";
+const ROUND_SIZE = 10;
+const XP_POR_PALAVRA = 10;
+let WORDS = null;      // [{en, pt, pron, key}]
+let round = null;      // estado da rodada atual
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* Parser CSV (lida com aspas e vírgulas dentro de células) */
+function parseCSV(text){
+  const rows=[]; let row=[], cur='', q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    }else{
+      if(c==='"') q=true;
+      else if(c===','){ row.push(cur); cur=''; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=''; }
+      else if(c!=='\r') cur+=c;
+    }
+  }
+  if(cur!==''||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+
+async function loadWords(){
+  if(WORDS) return WORDS;
+  const res = await fetch(SHEET_URL);
+  const rows = parseCSV(await res.text()).filter(r=>r.length>1);
+  const head = rows[0].map(h=>h.trim().toLowerCase());
+  const iEn = head.findIndex(h=>h.startsWith('ingl'));
+  const iPt = head.findIndex(h=>h.startsWith('portug'));
+  const iPr = head.findIndex(h=>h.startsWith('pron'));
+  const list=[];
+  for(let i=1;i<rows.length;i++){
+    const en=(rows[i][iEn]||'').trim(), pt=(rows[i][iPt]||'').trim();
+    if(!en||!pt) continue;
+    list.push({ en, pt, pron:(iPr>=0?(rows[i][iPr]||'').trim():''), key:en.toLowerCase() });
+  }
+  WORDS = list;
+  return list;
+}
+
+async function openQuiz(mod){
+  go('s-quiz');
+  document.getElementById('quiz-done').style.display='none';
+  document.getElementById('quiz-play').style.display='none';
+  document.getElementById('quiz-loading').style.display='';
+  document.getElementById('quiz-loading').innerHTML='<div class="big-emoji">📚</div><p class="sum">Carregando as palavras…</p>';
+  let words;
+  try{ words = await loadWords(); }
+  catch(e){ console.error(e);
+    document.getElementById('quiz-loading').innerHTML='<div class="big-emoji">📡</div><p class="sum">Não deu pra carregar as palavras. Confira a conexão e tente de novo.</p>';
+    return;
+  }
+  const learned = new Set(session.ap_enpt || []);
+  const pool = words.filter(w=> !learned.has(w.key));   // só pergunta o que ainda não aprendeu
+  if(pool.length===0){
+    document.getElementById('quiz-loading').style.display='none';
+    document.getElementById('quiz-done').style.display='';
+    document.getElementById('done-title').textContent='Você dominou tudo! 🏆';
+    document.getElementById('done-sum').innerHTML='Não há palavras novas no EN→PT. Parabéns!';
+    return;
+  }
+  const rodada = [...pool].sort(()=>Math.random()-0.5).slice(0, Math.min(ROUND_SIZE, pool.length));
+  round = { queue:rodada, all:words, xp:0, learnedThis:0, total:rodada.length, done:0, current:null, options:[], correctPt:'' };
+  document.getElementById('quiz-loading').style.display='none';
+  document.getElementById('quiz-play').style.display='';
+  document.getElementById('quiz-xp').textContent='0';
+  nextQuestion();
+}
+
+function nextQuestion(){
+  const next = round.queue.shift();
+  if(!next){ finishRound(); return; }
+  round.current = next;
+
+  // 1 certa + 3 iscas (iscas podem ser palavras já aprendidas), sem repetir texto
+  const wrong = round.all.filter(w=> w.pt !== next.pt).sort(()=>Math.random()-0.5);
+  const seen = new Set([next.pt]); const distract=[];
+  for(const w of wrong){ if(!seen.has(w.pt)){ seen.add(w.pt); distract.push(w.pt); } if(distract.length===3) break; }
+  round.options = [next.pt, ...distract].sort(()=>Math.random()-0.5);
+  round.correctPt = next.pt;
+
+  document.getElementById('quiz-word').textContent = next.en;
+  document.getElementById('quiz-pron').textContent = next.pron ? '/ '+next.pron+' /' : '';
+  const fb=document.getElementById('quiz-feedback'); fb.textContent=''; fb.className='feedback';
+  document.getElementById('quiz-next').style.display='none';
+
+  const opts=document.getElementById('quiz-opts'); opts.className='opts';
+  opts.innerHTML = round.options.map((o,i)=>`<button class="opt" data-i="${i}">${escapeHtml(o)}<span class="mk">✓</span></button>`).join('');
+  [...opts.children].forEach(b=> b.addEventListener('click', ()=> answer(b, round.options[+b.dataset.i])));
+  updateBar();
+}
+
+async function answer(btn, chosenPt){
+  const opts=document.getElementById('quiz-opts');
+  if(opts.classList.contains('locked')) return;
+  opts.classList.add('locked');
+  const correct = chosenPt === round.correctPt;
+  [...opts.children].forEach(b=>{
+    const t = round.options[+b.dataset.i];
+    if(t===round.correctPt) b.classList.add('correct');
+    else if(b===btn) b.classList.add('wrong');
+  });
+  const fb=document.getElementById('quiz-feedback');
+  if(correct){
+    round.xp += XP_POR_PALAVRA; round.learnedThis++; round.done++;
+    document.getElementById('quiz-xp').textContent = round.xp;
+    fb.textContent='Isso! +'+XP_POR_PALAVRA+' XP'; fb.className='feedback ok';
+    await markLearned(round.current.key);
+  }else{
+    fb.textContent='Quase! A certa é: '+round.correctPt; fb.className='feedback no';
+    round.queue.push(round.current);   // erra → volta pro fim da fila
+  }
+  document.getElementById('quiz-next').style.display='';
+  updateBar();
+}
+
+async function markLearned(key){
+  session.ap_enpt = session.ap_enpt || [];
+  if(!session.ap_enpt.includes(key)) session.ap_enpt.push(key);
+  session.xp = (session.xp||0) + XP_POR_PALAVRA;
+  try{
+    await updateDoc(doc(db,'usuarios',session.apelido_lower), { ap_enpt: arrayUnion(key), xp: increment(XP_POR_PALAVRA) });
+  }catch(e){ console.error(e); toast('Não deu pra salvar o progresso agora.'); }
+}
+
+function updateBar(){
+  const pct = round ? Math.round((round.done/round.total)*100) : 0;
+  document.getElementById('quiz-bar').style.width = Math.min(pct,100)+'%';
+}
+
+function finishRound(){
+  document.getElementById('quiz-play').style.display='none';
+  document.getElementById('quiz-done').style.display='';
+  document.getElementById('done-title').textContent='Rodada concluída!';
+  document.getElementById('done-sum').innerHTML =
+    `Você aprendeu <b>${round.learnedThis}</b> palavra(s) e ganhou <b>+${round.xp} XP</b>.`;
+  document.getElementById('home-xp').textContent = session.xp || 0;
+  refreshEnptProgress();
+}
+
+function refreshEnptProgress(){
+  if(!WORDS) return;
+  const learned = new Set(session.ap_enpt || []);
+  const n = WORDS.filter(w=>learned.has(w.key)).length;
+  const el=document.getElementById('mod-enpt-d');
+  if(el) el.textContent = `Reconhecer · ${n}/${WORDS.length} aprendidas`;
+}
+
 /* ---------- Expor handlers usados no HTML (onclick) ---------- */
-Object.assign(window,{ go,startLogin,onNick,renderSuggest,pickNick,pickAvatar,pinKey,pinBack,logout,openRanking,toast });
+Object.assign(window,{ go,startLogin,onNick,renderSuggest,pickNick,pickAvatar,pinKey,pinBack,logout,openRanking,toast,openQuiz,nextQuestion });
 
 /* ---------- Init ---------- */
 renderSuggest();
