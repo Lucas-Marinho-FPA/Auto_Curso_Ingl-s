@@ -42,8 +42,12 @@
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
   body{
     font-family:'Inter','Segoe UI',system-ui,-apple-system,sans-serif;
-    background:radial-gradient(135% 100% at 50% -8%, #164a78 0%, #0e2b47 44%, #071527 100%);
-    color:var(--text);min-height:100vh;
+    background:
+      radial-gradient(circle at top,#114E8C 0%,transparent 38%),
+      radial-gradient(circle at bottom,#062344 0%,transparent 42%),
+      linear-gradient(180deg,#071B36 0%,#06192F 100%);
+    background-attachment:fixed;
+    color:var(--text);min-height:100vh;position:relative;overflow-x:hidden;
     display:flex;justify-content:center;align-items:flex-start;padding:16px;
   }
   .app{width:100%;max-width:560px}
@@ -292,18 +296,41 @@
   .brand-word span{color:var(--accent2)}
   #brandHome .byline{margin-top:5px}
 
-  /* ===== Tela de boas-vindas premium (welcome) ===== */
-  #ob-welcome{position:relative;overflow:hidden;display:flex;flex-direction:column;min-height:380px;
-    background:rgba(19,48,79,.48);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-    border:1px solid rgba(255,255,255,.10);box-shadow:0 30px 70px rgba(0,0,0,.5)}
-  .ob-lines{position:absolute;top:0;left:0;width:100%;height:60%;pointer-events:none;opacity:.85}
-  .ob-welcome-copy{margin-top:auto;text-align:center;margin-bottom:18px}
-  #ob-welcome .ob-title{font-size:1.35rem}
-  #ob-welcome .btn-primary{box-shadow:0 0 48px 8px rgba(255,122,26,.30),0 12px 30px rgba(255,122,26,.22)}
-  #ob-welcome .btn-ghost{border-color:rgba(255,255,255,.16)}
+  /* ===== Boas-vindas premium (referência do Lucas) ===== */
+  body.welcome-mode header{display:none}
+  .bg-glow{position:fixed;border-radius:50%;filter:blur(130px);opacity:.5;z-index:0;pointer-events:none}
+  .bg-glow.g1{width:340px;height:340px;background:#00B7FF;top:-170px;left:50%;transform:translateX(-50%)}
+  .bg-glow.g2{width:280px;height:280px;background:#1E5EFF;bottom:-150px;right:-70px}
+  .app{position:relative;z-index:1}
+  #ob-welcome{display:flex;flex-direction:column;align-items:center;padding:0;background:none;border:none;box-shadow:none}
+  .ob-logo-circle{width:132px;height:132px;border-radius:50%;overflow:hidden;margin:6px auto 40px;background:#031c3b;
+    border:1px solid rgba(255,255,255,.12);box-shadow:0 0 74px rgba(0,183,255,.22),0 22px 50px rgba(0,0,0,.42);
+    animation:obFloat 5s ease-in-out infinite}
+  .ob-logo-circle img{width:100%;height:100%;object-fit:cover;transform:scale(1.08)}
+  .ob-card{position:relative;overflow:hidden;width:100%;padding:34px;border-radius:34px;
+    background:rgba(18,56,97,.6);backdrop-filter:blur(26px);-webkit-backdrop-filter:blur(26px);
+    border:1px solid rgba(255,255,255,.09);box-shadow:0 26px 60px rgba(0,0,0,.42);animation:obFadeUp .8s ease}
+  .ob-card::before{content:"";position:absolute;top:-120px;right:-120px;width:240px;height:240px;
+    background:radial-gradient(circle,rgba(255,255,255,.10),transparent 70%);filter:blur(30px);pointer-events:none}
+  .ob-card::after{content:"";position:absolute;bottom:-120px;left:-100px;width:220px;height:220px;
+    background:radial-gradient(circle,rgba(0,203,255,.14),transparent 70%);filter:blur(35px);pointer-events:none}
+  .ob-waves{position:absolute;top:0;left:0;width:100%;height:130px;pointer-events:none}
+  .ob-h1{color:#fff;font-size:2rem;font-weight:800;line-height:1.15;letter-spacing:-.5px;margin-top:34px;text-align:left;position:relative}
+  .ob-h1 span{display:block;color:#A9D7FF;font-weight:600}
+  .ob-p{margin-top:16px;color:rgba(255,255,255,.72);line-height:1.6;font-size:.98rem;text-align:left}
+  #ob-welcome .btn-primary{margin-top:30px;color:#fff;background:linear-gradient(135deg,var(--accent),#FF9F42);
+    box-shadow:0 12px 34px rgba(255,122,26,.42)}
+  #ob-welcome .btn-primary:hover{background:linear-gradient(135deg,#ff8a30,#ffab55);transform:translateY(-2px)}
+  #ob-welcome .btn-ghost{margin-top:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.14);color:#fff}
+  .ob-pagination{display:flex;justify-content:center;gap:9px;margin-top:28px}
+  .ob-pgdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);transition:.35s}
+  .ob-pgdot.active{width:30px;border-radius:999px;background:linear-gradient(90deg,var(--accent),#FF9F42)}
+  @keyframes obFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+  @keyframes obFadeUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
 </style>
 </head>
 <body>
+<div class="bg-glow g1"></div><div class="bg-glow g2"></div>
 <div class="app">
   <div id="topProgress" class="progress hidden" style="margin:0 0 12px"><i id="qBar"></i></div>
   <header>
@@ -332,28 +359,24 @@
 
   <!-- ===== PERFIL / ONBOARDING ===== -->
   <div id="onboard" class="hidden">
-    <div id="ob-welcome" class="card">
-      <svg class="ob-lines" viewBox="0 0 400 200" preserveAspectRatio="none" aria-hidden="true">
-        <defs><linearGradient id="ogr" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#ff7a1a" stop-opacity="0"/>
-          <stop offset=".5" stop-color="#ff9a4d" stop-opacity=".55"/>
-          <stop offset="1" stop-color="#ff7a1a" stop-opacity="0"/>
-        </linearGradient></defs>
-        <g fill="none" stroke="url(#ogr)" stroke-width="1">
-          <path d="M-20,52 C130,124 270,124 420,52"/>
-          <path d="M-20,60 C130,128 270,128 420,60"/>
-          <path d="M-20,68 C130,132 270,132 420,68"/>
-          <path d="M-20,92 C130,20 270,20 420,92"/>
-          <path d="M-20,84 C130,16 270,16 420,84"/>
-          <path d="M-20,76 C130,12 270,12 420,76"/>
-        </g>
-      </svg>
-      <div class="ob-welcome-copy">
-        <div class="ob-title">Seu perfil, sua evolução</div>
-        <div class="ob-sub">Crie um apelido, escolha um avatar e dispute o ranking.</div>
+    <div id="ob-welcome">
+      <div class="ob-logo-circle"><img src="icon.png" alt="Bora de Inglês"></div>
+      <div class="ob-card">
+        <svg class="ob-waves" viewBox="0 0 340 130" preserveAspectRatio="none" aria-hidden="true">
+          <g fill="none" stroke="#ffffff" stroke-width="1.5" opacity="0.09">
+            <path d="M-30 22C60 2 150 2 340 42"/>
+            <path d="M-30 44C60 24 150 24 340 64"/>
+            <path d="M-30 66C60 46 150 46 340 86"/>
+            <path d="M-30 88C60 68 150 68 340 108"/>
+            <path d="M-30 110C60 90 150 90 340 130"/>
+          </g>
+        </svg>
+        <h1 class="ob-h1">Aprenda inglês<span>de forma inteligente.</span></h1>
+        <p class="ob-p">Sua jornada começa aqui. Evolua todo dia e dispute o ranking com a família.</p>
+        <button class="btn-primary" id="ob-createBtn">Criar perfil</button>
+        <button class="btn-ghost" id="ob-loginBtn">Já tenho perfil</button>
+        <div class="ob-pagination"><span class="ob-pgdot active"></span><span class="ob-pgdot"></span><span class="ob-pgdot"></span></div>
       </div>
-      <button class="btn-primary" id="ob-createBtn">Criar perfil</button>
-      <button class="btn-ghost" id="ob-loginBtn">Já tenho perfil — Entrar</button>
     </div>
 
     <div id="ob-nick" class="card hidden">
@@ -1179,7 +1202,7 @@ function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
 let _tt; function toastMsg(m){ const t=$('obToast'); t.textContent=m; t.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2400); }
 
 /* ---------- telas do onboarding ---------- */
-function obShow(id){ ['ob-welcome','ob-nick','ob-avatar','ob-pin'].forEach(x=>$(x).classList.add('hidden')); $('onboard').classList.remove('hidden'); $(id).classList.remove('hidden'); window.scrollTo(0,0); }
+function obShow(id){ ['ob-welcome','ob-nick','ob-avatar','ob-pin'].forEach(x=>$(x).classList.add('hidden')); $('onboard').classList.remove('hidden'); $(id).classList.remove('hidden'); document.body.classList.toggle('welcome-mode', id==='ob-welcome'); window.scrollTo(0,0); }
 function hideGameCards(){ ['loading','home','quiz','result','errscr','topProgress'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); }); }
 
 /* ---------- sugestões de apelido ---------- */
@@ -1256,6 +1279,7 @@ async function updateStreak(key,u){
 /* ---------- entrar no jogo / sair ---------- */
 function renderProfileBar(){ $('pb-av').innerHTML=avatarSVG(session.avatar); $('pb-nick').textContent=session.nick; $('pb-xp').textContent=session.xp||0; $('pb-streak').textContent=session.streak||1; }
 function enterApp(){
+  document.body.classList.remove('welcome-mode');
   $('onboard').classList.add('hidden'); $('rankScreen').classList.add('hidden');
   renderProfileBar(); $('profileBar').classList.remove('hidden');
   if(typeof window.startApp==='function') window.startApp(session.apelido_lower);
