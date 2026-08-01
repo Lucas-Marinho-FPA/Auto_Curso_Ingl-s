@@ -7,16 +7,16 @@
   "theme_color": "#04305b",
   "icons": [
     {
-      "src": "avatar.png",
+      "src": "icon.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
+      "src": "icon.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     }
   ]
 }

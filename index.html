@@ -22,9 +22,11 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Bora de Inglês">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" type="image/png" href="avatar.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 <link rel="manifest" href="manifest.json">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg1:#04305b; --bg2:#031f3d; --card:#0b2f52; --card2:#153f68;
@@ -194,6 +196,73 @@
   .errbox{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:14px;text-align:left;font-size:.85rem;color:#fca5a5;margin:14px 0}
   .errbox b{color:var(--text)}
   footer{text-align:center;color:var(--muted);font-size:.72rem;padding:16px 0}
+
+  /* ===== Perfil / Onboarding / Ranking (add-on Firebase) ===== */
+  .ob-hero{display:grid;place-items:center;margin:2px 0 14px}
+  .ob-hero .ring{width:118px;height:118px;border-radius:50%;background:conic-gradient(from 210deg,var(--accent),var(--accent2),var(--accent));display:grid;place-items:center;box-shadow:0 10px 30px rgba(248,128,14,.35);animation:spin 16s linear infinite}
+  .ob-hero .ring .inner{width:102px;height:102px;border-radius:50%;background:var(--card);display:grid;place-items:center}
+  .ob-hero .ring .inner svg{width:74px;height:74px;animation:spin 16s linear infinite reverse}
+  .ob-title{font-size:1.5rem;font-weight:800;text-align:center;margin-top:4px}
+  .ob-sub{color:var(--muted);text-align:center;font-size:.92rem;margin:6px 0 16px;line-height:1.45}
+  .ob-back{background:none;border:none;color:var(--muted);font-weight:700;cursor:pointer;font-size:.9rem;padding:2px 2px 8px;display:block}
+  .ob-back:hover{color:var(--text)}
+  .ob-input{width:100%;padding:15px;border-radius:12px;border:2px solid var(--card2);background:#0f172a;color:var(--text);font-size:1.15rem;font-weight:700;text-align:center;outline:none}
+  .ob-input:focus{border-color:var(--accent)}
+  .ob-chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0 2px;justify-content:center}
+  .ob-chip{background:var(--card2);border:1px solid rgba(255,255,255,.08);color:var(--text);font-weight:700;font-size:.85rem;padding:8px 12px;border-radius:99px;cursor:pointer}
+  .ob-chip:hover{border-color:var(--accent)}
+  .ob-chip.re{background:transparent;color:var(--accent2)}
+  .ob-hint{font-size:.8rem;color:var(--muted);margin-top:12px;line-height:1.45;text-align:center}
+  .ob-hint b{color:var(--accent2)}
+  .ob-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:6px 0 4px}
+  .ob-cell{aspect-ratio:1;border:none;background:var(--card2);border-radius:16px;padding:8px;cursor:pointer;position:relative;outline:2px solid transparent;outline-offset:2px;transition:.14s}
+  .ob-cell svg{width:100%;height:100%;display:block}
+  .ob-cell:hover{background:#1a4a78}
+  .ob-cell.sel{outline-color:var(--accent);box-shadow:0 8px 20px rgba(248,128,14,.3)}
+  .ob-cell.sel svg{animation:pop .5s ease}
+  @keyframes pop{0%{transform:scale(1)}40%{transform:scale(1.13) rotate(-4deg)}100%{transform:scale(1)}}
+  .ob-cell .ck{position:absolute;top:-6px;right:-6px;width:22px;height:22px;border-radius:50%;background:var(--accent);display:none;place-items:center;color:#fff;font-size:.7rem;font-weight:800}
+  .ob-cell.sel .ck{display:grid}
+  .ob-dots{display:flex;gap:14px;justify-content:center;margin:20px 0 8px}
+  .ob-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--muted);transition:.15s}
+  .ob-dot.on{background:var(--accent);border-color:var(--accent);transform:scale(1.1)}
+  .ob-dot.err{border-color:var(--bad);background:var(--bad);animation:shk .4s}
+  @keyframes shk{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  .ob-msg{min-height:20px;text-align:center;font-weight:700;margin-bottom:10px}
+  .ob-msg.bad{color:#fca5a5}
+  .ob-keypad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:0 auto}
+  .ob-key{aspect-ratio:1.6;border:1px solid var(--card2);background:var(--card2);color:var(--text);border-radius:14px;font-size:1.5rem;font-weight:700;cursor:pointer;transition:.1s}
+  .ob-key:hover{background:#1a4a78}
+  .ob-key:active{transform:scale(.94)}
+  .ob-key.act{color:var(--accent2)}
+  .ob-busy{opacity:.6;pointer-events:none}
+  .pbar{display:flex;align-items:center;gap:11px;background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;padding:10px 12px;margin-bottom:12px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+  .pbar .pav{width:44px;height:44px;border-radius:12px;background:var(--card2);padding:4px;flex:none}
+  .pbar .pav svg{width:100%;height:100%}
+  .pbar .pnm{font-weight:800}
+  .pbar .pmeta{font-size:.75rem;color:var(--muted)}
+  .pbar .pmeta b{color:var(--gold)}
+  .pbar .pacts{margin-left:auto;display:flex;gap:6px}
+  .pbar .pbtn{background:var(--card2);border:none;color:var(--text);font-weight:700;font-size:.8rem;padding:8px 10px;border-radius:10px;cursor:pointer}
+  .pbar .pbtn:hover{background:var(--accent)}
+  .rank-row{display:flex;align-items:center;gap:11px;background:var(--card2);border:1px solid transparent;border-radius:14px;padding:10px 12px;margin-bottom:9px}
+  .rank-row.me{border-color:var(--accent);box-shadow:0 6px 18px rgba(248,128,14,.2)}
+  .rank-row .pos{width:26px;text-align:center;font-weight:800;font-size:1rem;color:var(--muted)}
+  .rank-row .pos.md{font-size:1.25rem}
+  .rank-row .rav{width:40px;height:40px;border-radius:11px;background:var(--bg2);padding:4px;flex:none}
+  .rank-row .rav svg{width:100%;height:100%}
+  .rank-row .rnm{font-weight:800}
+  .rank-row .rxp{margin-left:auto;font-weight:800;color:var(--gold)}
+  .rank-row .rxp span{color:var(--muted);font-weight:700;font-size:.75rem}
+  .ob-toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--card2);color:var(--text);border:1px solid rgba(255,255,255,.1);padding:12px 18px;border-radius:14px;font-weight:700;font-size:.88rem;opacity:0;pointer-events:none;transition:.25s;box-shadow:0 16px 40px rgba(0,0,0,.5);max-width:88%;text-align:center;z-index:100}
+  .ob-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+
+  /* ===== Identidade / marca (Etapa 1) ===== */
+  .brand-logo{width:min(80%,270px);height:auto;display:block;margin:0 auto 2px;border-radius:14px}
+  #brandHome{display:flex;flex-direction:column;align-items:center;gap:2px}
+  .ob-title,.result .big,.prompt .word,.pbar .pnm,.rank-row .rnm{font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
+  .btn-primary{font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
 </style>
 </head>
 <body>
@@ -201,17 +270,78 @@
   <div id="topProgress" class="progress hidden" style="margin:0 0 12px"><i id="qBar"></i></div>
   <header>
     <div class="brand">
-      <img class="avatar" id="avTop" src="avatar.png" alt="Lucas Marinho">
-      <div id="brandText">
-        <h1>Bora de <span>Inglês</span></h1>
+      <div id="brandHome">
+        <img class="brand-logo" id="brandLogo" src="logo.png" alt="Bora de Inglês">
         <div class="byline">by Lucas Marinho</div>
       </div>
+      <img class="avatar hidden" id="avTop" src="avatar.png" alt="Lucas">
       <div id="reaction" class="reaction hidden"></div>
     </div>
   </header>
 
+  <!-- ===== BARRA DE PERFIL (logado) ===== -->
+  <div id="profileBar" class="pbar hidden">
+    <div class="pav" id="pb-av"></div>
+    <div>
+      <div class="pnm" id="pb-nick">—</div>
+      <div class="pmeta"><b id="pb-xp">0</b> XP · 🔥 <span id="pb-streak">1</span></div>
+    </div>
+    <div class="pacts">
+      <button class="pbtn" id="pb-rank">🏆 Ranking</button>
+      <button class="pbtn" id="pb-out">Sair</button>
+    </div>
+  </div>
+
+  <!-- ===== PERFIL / ONBOARDING ===== -->
+  <div id="onboard" class="hidden">
+    <div id="ob-welcome" class="card">
+      <div class="ob-hero"><div class="ring"><div class="inner" id="ob-heroav"></div></div></div>
+      <div class="ob-title">Seu perfil, sua evolução</div>
+      <div class="ob-sub">Crie um apelido, escolha um avatar e dispute o ranking com a família.</div>
+      <button class="btn-primary" id="ob-createBtn">Criar perfil</button>
+      <button class="btn-ghost" id="ob-loginBtn">Já tenho perfil — Entrar</button>
+    </div>
+
+    <div id="ob-nick" class="card hidden">
+      <button class="ob-back" data-back="welcome">‹ Voltar</button>
+      <div class="ob-title" id="ob-nickTitle">Qual será seu apelido?</div>
+      <div class="ob-sub" id="ob-nickSub">É como você aparece no ranking.</div>
+      <input class="ob-input" id="ob-nickInput" maxlength="16" placeholder="Ex.: RaposaTurbo" autocomplete="off">
+      <div class="ob-chips" id="ob-suggest"></div>
+      <div class="ob-hint" id="ob-nickHint">Dica: <b>não use seu nome real</b> — um apelido divertido mantém o perfil seguro.</div>
+      <button class="btn-primary" id="ob-nickNext" disabled>Continuar</button>
+    </div>
+
+    <div id="ob-avatar" class="card hidden">
+      <button class="ob-back" data-back="nick">‹ Voltar</button>
+      <div class="ob-title">Escolha seu avatar</div>
+      <div class="ob-sub">Ele aparece do seu lado no ranking.</div>
+      <div class="ob-grid" id="ob-grid"></div>
+      <button class="btn-primary" id="ob-avNext" disabled>Continuar</button>
+    </div>
+
+    <div id="ob-pin" class="card hidden">
+      <button class="ob-back" id="ob-pinBack">‹ Voltar</button>
+      <div class="ob-title" id="ob-pinTitle">Crie um PIN</div>
+      <div class="ob-sub" id="ob-pinSub">4 números para proteger seu perfil.</div>
+      <div class="ob-dots" id="ob-dots"><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div><div class="ob-dot"></div></div>
+      <div class="ob-msg" id="ob-pinMsg"></div>
+      <div class="ob-keypad" id="ob-keypad"></div>
+    </div>
+  </div>
+
+  <!-- ===== RANKING ===== -->
+  <div id="rankScreen" class="card hidden">
+    <button class="ob-back" id="rank-back">‹ Voltar</button>
+    <div class="ob-title">Ranking 🏆</div>
+    <div class="ob-sub">Classificação por XP. Sua evolução conta!</div>
+    <div id="rankList"></div>
+  </div>
+
+  <div class="ob-toast" id="obToast"></div>
+
   <!-- LOADING -->
-  <div id="loading" class="card center">
+  <div id="loading" class="card center hidden">
     <div class="spinner"></div>
     <div>Carregando palavras da sua planilha…</div>
   </div>
@@ -309,27 +439,29 @@ const SHEET_NAME = 'Página1';
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(SHEET_NAME);
 const CACHE_KEY = 'lucas_words_cache_v2';
 const LS_KEY = 'lucas_ingles_progress_v1';
+let CURRENT_USER = null;
+function progKey(){ return LS_KEY + (CURRENT_USER ? '__'+CURRENT_USER : ''); }
 const AV_WIN="avatar_win.png";
 const AV_FAIL="avatar_fail.png";
 const AV_COVER="avatar.png";
 /* topo dinâmico: capa+título (home), capa+pergunta (quiz), reação (resposta) */
 function _reset(showTitle){
-  document.getElementById('avTop').src=AV_COVER;
-  document.getElementById('brandText').classList.toggle('hidden', !showTitle);
+  document.getElementById('avTop').classList.add('hidden');
+  document.getElementById('brandHome').classList.toggle('hidden', !showTitle);
   const s=document.getElementById('reaction'); s.className='reaction hidden'; s.innerHTML='';
 }
 function topHome(){ _reset(true); }
 function topHide(){ _reset(false); }
 function topQuestion(tag, level){
-  document.getElementById('avTop').src=AV_COVER;
-  document.getElementById('brandText').classList.add('hidden');
+  document.getElementById('brandHome').classList.add('hidden');
+  const a=document.getElementById('avTop'); a.classList.remove('hidden'); a.src=AV_COVER;
   const s=document.getElementById('reaction');
   s.className='qtag';
   s.innerHTML = tag + (level!==''?' <span class="lvltag">Nv '+level+'</span>':'');
 }
 function topAnswer(correct, answerText){
-  document.getElementById('avTop').src = correct?AV_WIN:AV_FAIL;
-  document.getElementById('brandText').classList.add('hidden');
+  document.getElementById('brandHome').classList.add('hidden');
+  const a=document.getElementById('avTop'); a.classList.remove('hidden'); a.src = correct?AV_WIN:AV_FAIL;
   const s=document.getElementById('reaction');
   s.className='reaction '+(correct?'ok':'bad');
   s.innerHTML = (correct?'Certo!':'Errado!') + (answerText?(' <span class="ans">'+esc(answerText)+'</span>'):'');
@@ -438,10 +570,10 @@ function isCorrect(input, answer){
 
 /* ---------- progresso ---------- */
 function loadProg(){
-  try{ return JSON.parse(localStorage.getItem(LS_KEY)) || {total:0,correct:0,perWord:{}}; }
+  try{ return JSON.parse(localStorage.getItem(progKey())) || {total:0,correct:0,perWord:{}}; }
   catch(e){ return {total:0,correct:0,perWord:{}}; }
 }
-function saveProg(p){ try{ localStorage.setItem(LS_KEY, JSON.stringify(p)); }catch(e){} }
+function saveProg(p){ try{ localStorage.setItem(progKey(), JSON.stringify(p)); }catch(e){} }
 let prog = loadProg();
 function refreshHomeStats(){
   document.getElementById('stTotal').textContent = prog.total;
@@ -688,6 +820,7 @@ function afterAnswer(correct,w,answerText){
   const s = prog.perWord[w.en] || {right:0,wrong:0};
   correct ? s.right++ : s.wrong++;
   prog.perWord[w.en]=s; saveProg(prog);
+  if(correct && window.BoraCloud && window.BoraCloud.onCorrect) window.BoraCloud.onCorrect(w.en);
 
   /* guarda para revisão pelo "Voltar" */
   records[idx] = {w, correct, promptWord: w[current.showKey], correctAnswer: w[current.ansKey], english: current.english, pron: w.pron};
@@ -710,6 +843,7 @@ function finish(){
   const total=deck.length, pct = total? Math.round(score/total*100):0;
   document.getElementById('quiz').classList.add('hidden');
   const r=document.getElementById('result'); r.classList.remove('hidden');
+  { const pb=document.getElementById('profileBar'); if(pb) pb.classList.remove('hidden'); }
   document.getElementById('rPct').textContent = pct+'%';
   document.getElementById('rEmoji').textContent = pct>=90?'🏆':pct>=70?'🎉':pct>=50?'💪':'📚';
   document.getElementById('avResult').src = pct>=50?AV_WIN:AV_FAIL;
@@ -733,11 +867,13 @@ function start(){
   document.getElementById('result').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
   document.getElementById('topProgress').classList.remove('hidden');
+  { const pb=document.getElementById('profileBar'); if(pb) pb.classList.add('hidden'); }
   renderQuestion();
 }
 function goHome(){
   ['quiz','result','errscr','loading','topProgress'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint(); topHome();
+  { const pb=document.getElementById('profileBar'); if(pb) pb.classList.remove('hidden'); }
 }
 document.getElementById('startBtn').onclick=start;
 document.getElementById('againBtn').onclick=start;
@@ -745,7 +881,7 @@ document.getElementById('homeBtn').onclick=goHome;
 document.getElementById('quitBtn').onclick=goHome;
 document.getElementById('resetBtn').onclick=()=>{
   if(confirm('Apagar TODO o progresso salvo? Isso zera acertos, erros e palavras difíceis — bom para outra pessoa recomeçar do zero.')){
-    localStorage.removeItem(LS_KEY); prog = loadProg(); refreshHomeStats();
+    localStorage.removeItem(progKey()); prog = loadProg(); refreshHomeStats();
     alert('Progresso apagado! Tudo zerado. ✨');
   }
 };
@@ -776,7 +912,209 @@ async function init(force){
   refreshHomeStats(); updateLvlHint(); topHome();
   document.getElementById('home').classList.remove('hidden');
 }
-init();
+window.startApp = function(user){ if(user) CURRENT_USER = user; prog = loadProg(); return init(); };
 </script>
+<script type="module">
+/* ============================================================================
+   ADD-ON FIREBASE — perfil (apelido+PIN), 12 avatares, ranking e XP.
+   O jogo original (script acima) fica intacto. Este módulo só:
+     • cria/loga perfil (Login Anônimo + apelido+PIN com hash),
+     • guarda o perfil no Firestore (usuarios/{apelido}),
+     • soma +10 XP por palavra NOVA acertada (via window.BoraCloud.onCorrect),
+     • mostra o ranking por XP,
+     • chama window.startApp(apelido) para iniciar o jogo depois do login.
+============================================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-app.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.16.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, limit, serverTimestamp, increment, arrayUnion }
+  from "https://www.gstatic.com/firebasejs/12.16.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey:            "AIzaSyCl4kn_tkmIqXRmXQME_KTAZPXPRV8zGLI",
+  authDomain:        "bora-de-ingles.firebaseapp.com",
+  projectId:         "bora-de-ingles",
+  storageBucket:     "bora-de-ingles.firebasestorage.app",
+  messagingSenderId: "961642280933",
+  appId:             "1:961642280933:web:f5a70f91f35bd10f41210c",
+  measurementId:     "G-9Y518PTKV1"
+};
+
+/* ---------- Avatares originais (sem marca) ---------- */
+const AV = {
+  fox:      {nome:"Raposa",  bg:"#26456B", svg:`<circle cx="50" cy="54" r="30" fill="#FF7A1A"/><path d="M22 40 30 20 42 34Z" fill="#FF7A1A"/><path d="M78 40 70 20 58 34Z" fill="#FF7A1A"/><path d="M26 55 A24 24 0 0 0 74 55 L74 62 A24 24 0 0 1 26 62Z" fill="#F4F2EC"/><circle cx="40" cy="52" r="4" fill="#20130a"/><circle cx="60" cy="52" r="4" fill="#20130a"/><path d="M46 64 54 64 50 70Z" fill="#20130a"/>`},
+  cat:      {nome:"Gato",    bg:"#2B3A52", svg:`<path d="M26 34 30 18 44 32Z" fill="#8B97AD"/><path d="M74 34 70 18 56 32Z" fill="#8B97AD"/><circle cx="50" cy="54" r="30" fill="#8B97AD"/><circle cx="40" cy="52" r="4.5" fill="#20130a"/><circle cx="60" cy="52" r="4.5" fill="#20130a"/><path d="M50 60 47 64M50 60 53 64" stroke="#20130a" stroke-width="3" stroke-linecap="round"/><path d="M28 58H40M28 64H40M72 58H60M72 64H60" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"/>`},
+  owl:      {nome:"Coruja",  bg:"#3A2C63", svg:`<path d="M50 22c-20 0-30 14-30 34s14 30 30 30 30-10 30-30S70 22 50 22Z" fill="#8E6FE0"/><path d="M24 30 40 40 30 46Z" fill="#6E4FC7"/><path d="M76 30 60 40 70 46Z" fill="#6E4FC7"/><circle cx="40" cy="52" r="13" fill="#F4F2EC"/><circle cx="60" cy="52" r="13" fill="#F4F2EC"/><circle cx="40" cy="53" r="6" fill="#20130a"/><circle cx="60" cy="53" r="6" fill="#20130a"/><path d="M46 66 54 66 50 74Z" fill="#FF9A4D"/>`},
+  frog:     {nome:"Sapo",    bg:"#1E4A3A", svg:`<circle cx="34" cy="34" r="14" fill="#4FBE7B"/><circle cx="66" cy="34" r="14" fill="#4FBE7B"/><circle cx="34" cy="34" r="6" fill="#20130a"/><circle cx="66" cy="34" r="6" fill="#20130a"/><path d="M20 52 A30 26 0 0 0 80 52 L80 58 A30 30 0 0 1 20 58Z" fill="#4FBE7B"/><path d="M34 62 Q50 74 66 62" stroke="#20130a" stroke-width="3.5" fill="none" stroke-linecap="round"/>`},
+  panda:    {nome:"Panda",   bg:"#33465F", svg:`<circle cx="30" cy="30" r="12" fill="#20130a"/><circle cx="70" cy="30" r="12" fill="#20130a"/><circle cx="50" cy="54" r="30" fill="#F4F2EC"/><ellipse cx="40" cy="52" rx="8" ry="10" fill="#20130a"/><ellipse cx="60" cy="52" rx="8" ry="10" fill="#20130a"/><circle cx="40" cy="52" r="3.5" fill="#F4F2EC"/><circle cx="60" cy="52" r="3.5" fill="#F4F2EC"/><circle cx="50" cy="66" r="4" fill="#20130a"/>`},
+  penguin:  {nome:"Pinguim", bg:"#1F5E76", svg:`<ellipse cx="50" cy="52" rx="28" ry="32" fill="#2A3550"/><ellipse cx="50" cy="58" rx="17" ry="24" fill="#F4F2EC"/><circle cx="42" cy="42" r="4" fill="#20130a"/><circle cx="58" cy="42" r="4" fill="#20130a"/><path d="M44 50 56 50 50 58Z" fill="#FF9A4D"/>`},
+  robot1:   {nome:"Robô laranja", bg:"#233A5C", svg:`<line x1="50" y1="14" x2="50" y2="26" stroke="#FF9A4D" stroke-width="3"/><circle cx="50" cy="12" r="4" fill="#FF9A4D"/><rect x="24" y="26" width="52" height="46" rx="12" fill="#FF9A4D"/><rect x="33" y="40" width="14" height="10" rx="3" fill="#20130a"/><rect x="53" y="40" width="14" height="10" rx="3" fill="#20130a"/><rect x="38" y="60" width="24" height="5" rx="2.5" fill="#20130a"/>`},
+  robot2:   {nome:"Robô ciano", bg:"#123E52", svg:`<line x1="34" y1="16" x2="40" y2="28" stroke="#37C2C4" stroke-width="3"/><line x1="66" y1="16" x2="60" y2="28" stroke="#37C2C4" stroke-width="3"/><circle cx="34" cy="14" r="3.5" fill="#37C2C4"/><circle cx="66" cy="14" r="3.5" fill="#37C2C4"/><rect x="24" y="28" width="52" height="44" rx="22" fill="#37C2C4"/><rect x="34" y="44" width="32" height="14" rx="7" fill="#0B2E52"/><circle cx="44" cy="51" r="4" fill="#9BF0F2"/><circle cx="58" cy="51" r="4" fill="#9BF0F2"/>`},
+  monster1: {nome:"Monstrinho rosa", bg:"#5A2444", svg:`<path d="M32 20 34 30M50 18 50 30M68 20 66 30" stroke="#FF6FA5" stroke-width="4" stroke-linecap="round"/><path d="M22 40 Q50 84 78 40 Q78 30 50 30 Q22 30 22 40Z" fill="#FF6FA5"/><circle cx="50" cy="48" r="12" fill="#F4F2EC"/><circle cx="50" cy="49" r="6" fill="#20130a"/><path d="M40 66 Q50 74 60 66" stroke="#20130a" stroke-width="3.5" fill="none" stroke-linecap="round"/>`},
+  monster2: {nome:"Monstrinho verde", bg:"#3E511A", svg:`<path d="M24 42 Q50 82 76 42 Q76 28 50 28 Q24 28 24 42Z" fill="#A6D93B"/><circle cx="36" cy="44" r="7" fill="#F4F2EC"/><circle cx="50" cy="40" r="7" fill="#F4F2EC"/><circle cx="64" cy="44" r="7" fill="#F4F2EC"/><circle cx="36" cy="45" r="3" fill="#20130a"/><circle cx="50" cy="41" r="3" fill="#20130a"/><circle cx="64" cy="45" r="3" fill="#20130a"/><path d="M42 62 H58 L54 70 H46Z" fill="#F4F2EC"/>`},
+  rocket:   {nome:"Foguete", bg:"#2A2F63", svg:`<path d="M50 16 C64 30 64 48 58 66 H42 C36 48 36 30 50 16Z" fill="#F4F2EC"/><circle cx="50" cy="40" r="8" fill="#1A5088"/><path d="M42 58 30 70 40 68Z" fill="#FF7A1A"/><path d="M58 58 70 70 60 68Z" fill="#FF7A1A"/><path d="M45 66 H55 L52 80 Q50 84 48 80Z" fill="#FF9A4D"/>`},
+  planet:   {nome:"Planeta", bg:"#152A55", svg:`<circle cx="50" cy="50" r="26" fill="#5A8DE0"/><path d="M32 44 Q45 40 60 46 Q52 50 40 50 Q34 48 32 44Z" fill="#7FB0F0"/><circle cx="60" cy="60" r="7" fill="#3E6DBE"/><ellipse cx="50" cy="52" rx="40" ry="12" fill="none" stroke="#FFC46B" stroke-width="4" transform="rotate(-20 50 52)"/>`}
+};
+const AV_IDS = Object.keys(AV);
+function avatarSVG(id){ const a=AV[id]||AV.fox; return `<svg viewBox="0 0 100 100" role="img" aria-label="${a.nome}"><rect x="2" y="2" width="96" height="96" rx="26" fill="${a.bg}"/>${a.svg}</svg>`; }
+
+/* ---------- estado ---------- */
+let db=null, auth=null, ready=false, session=null;
+let draft={nick:'',avatar:null};
+let pinMode='set', pinBuf='', pinFirst='', loginNick='';
+const $=id=>document.getElementById(id);
+
+/* ---------- helpers ---------- */
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+async function hashPin(pin,salt){ const d=new TextEncoder().encode(pin+"|"+salt+"|bora-ingles"); const b=await crypto.subtle.digest("SHA-256",d); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function safeKey(n){ return n.trim().toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9_-]/g,''); }
+function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
+let _tt; function toastMsg(m){ const t=$('obToast'); t.textContent=m; t.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2400); }
+
+/* ---------- telas do onboarding ---------- */
+function obShow(id){ ['ob-welcome','ob-nick','ob-avatar','ob-pin'].forEach(x=>$(x).classList.add('hidden')); $('onboard').classList.remove('hidden'); $(id).classList.remove('hidden'); window.scrollTo(0,0); }
+function hideGameCards(){ ['loading','home','quiz','result','errscr','topProgress'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); }); }
+
+/* ---------- sugestões de apelido ---------- */
+const ADJ=["Turbo","Veloz","Azul","Feliz","Ninja","Estelar","Radiante","Curioso","Dourado","Corajoso","Elétrico","Lunar"];
+const NOU=["Raposa","Tigre","Foguete","Coruja","Dragão","Panda","Cometa","Falcão","Robô","Lontra","Trovão","Pinguim"];
+function sug(){ return NOU[Math.random()*NOU.length|0]+ADJ[Math.random()*ADJ.length|0]+(Math.random()*9+1|0); }
+function renderSuggest(){ const box=$('ob-suggest'); box.innerHTML=[sug(),sug(),sug()].map(s=>`<button class="ob-chip" data-s="${s}">${s}</button>`).join('')+'<button class="ob-chip re" id="ob-reroll">↻ outras</button>'; [...box.querySelectorAll('.ob-chip[data-s]')].forEach(b=>b.onclick=()=>pickNick(b.dataset.s)); $('ob-reroll').onclick=renderSuggest; }
+function pickNick(s){ $('ob-nickInput').value=s; onNick(); }
+function onNick(){ const v=$('ob-nickInput').value.trim(); draft.nick=v; if(pinMode!=='login') $('ob-nickNext').disabled=v.length<2; }
+
+/* ---------- grade de avatares ---------- */
+function buildGrid(){ const g=$('ob-grid'); g.innerHTML=AV_IDS.map(id=>`<button class="ob-cell ${draft.avatar===id?'sel':''}" data-id="${id}">${avatarSVG(id)}<span class="ck">✓</span></button>`).join(''); [...g.querySelectorAll('.ob-cell')].forEach(b=>b.onclick=()=>{ draft.avatar=b.dataset.id; buildGrid(); $('ob-avNext').disabled=false; }); $('ob-avNext').disabled=!draft.avatar; }
+
+/* ---------- PIN ---------- */
+function buildKeypad(){ const k=$('ob-keypad'); const keys=['1','2','3','4','5','6','7','8','9','','0','⌫']; k.innerHTML=keys.map(n=> n===''?'<div></div>':`<button class="ob-key ${n==='⌫'?'act':''}" data-k="${n}">${n}</button>`).join(''); [...k.querySelectorAll('button')].forEach(b=>b.onclick=()=>pinKey(b.dataset.k)); }
+function setDots(n,err){ document.querySelectorAll('#ob-dots .ob-dot').forEach((d,i)=>{ d.classList.toggle('on',i<n); d.classList.toggle('err',!!err); }); }
+function pinKey(n){ if($('ob-keypad').classList.contains('ob-busy')) return; if(n==='⌫'){ pinBuf=pinBuf.slice(0,-1); setDots(pinBuf.length); return; } if(pinBuf.length>=4) return; pinBuf+=n; setDots(pinBuf.length); if(pinBuf.length===4) setTimeout(pinDone,140); }
+function startSetPin(){ pinMode='set'; pinBuf=''; pinFirst=''; $('ob-pinTitle').textContent='Crie um PIN'; $('ob-pinSub').textContent='4 números para proteger seu perfil.'; $('ob-pinMsg').textContent=''; $('ob-pinMsg').className='ob-msg'; setDots(0); obShow('ob-pin'); }
+function pinErr(msg){ const m=$('ob-pinMsg'); setDots(4,true); m.textContent=msg; m.className='ob-msg bad'; setTimeout(()=>{ pinBuf=''; setDots(0); m.textContent=''; m.className='ob-msg'; $('ob-keypad').classList.remove('ob-busy'); },950); }
+function pinDone(){
+  const m=$('ob-pinMsg');
+  if(pinMode==='set'){ pinFirst=pinBuf; pinBuf=''; setDots(0); $('ob-pinTitle').textContent='Confirme o PIN'; $('ob-pinSub').textContent='Digite os mesmos 4 números.'; pinMode='confirm'; }
+  else if(pinMode==='confirm'){
+    if(pinBuf===pinFirst){ $('ob-keypad').classList.add('ob-busy'); createProfile(pinFirst); }
+    else{ setDots(4,true); m.textContent='Os PINs não bateram.'; m.className='ob-msg bad';
+      setTimeout(()=>{ pinBuf=''; pinFirst=''; setDots(0); m.textContent=''; m.className='ob-msg'; $('ob-pinTitle').textContent='Crie um PIN'; $('ob-pinSub').textContent='4 números para proteger seu perfil.'; pinMode='set'; },950); }
+  }
+  else if(pinMode==='login'){ $('ob-keypad').classList.add('ob-busy'); doLogin(loginNick,pinBuf); }
+}
+
+/* ---------- criar / login ---------- */
+async function createProfile(pin){
+  if(!ready){ toastMsg('Conectando… tente de novo.'); $('ob-keypad').classList.remove('ob-busy'); return; }
+  const key=safeKey(draft.nick);
+  if(key.length<2){ toastMsg('Apelido inválido.'); obShow('ob-nick'); $('ob-keypad').classList.remove('ob-busy'); return; }
+  try{
+    const ref=doc(db,'usuarios',key);
+    if((await getDoc(ref)).exists()){ toastMsg('Esse apelido já existe. Escolha outro.'); obShow('ob-nick'); $('ob-keypad').classList.remove('ob-busy'); return; }
+    const data={ nick:draft.nick, apelido_lower:key, avatar:draft.avatar, pin_hash:await hashPin(pin,key), owner_uid:auth.currentUser.uid, xp:0, streak:1, last_active:todayStr(), ap_learned:[], criado_em:serverTimestamp() };
+    await setDoc(ref,data); session=data; localStorage.setItem('bora_session',key); enterApp();
+  }catch(e){ console.error(e); toastMsg('Sem conexão. Tente de novo.'); $('ob-keypad').classList.remove('ob-busy'); }
+}
+function startLogin(){
+  obShow('ob-nick');
+  $('ob-nickTitle').textContent='Entrar'; $('ob-nickSub').textContent='Digite seu apelido.';
+  $('ob-suggest').style.display='none'; $('ob-nickHint').style.display='none';
+  const btn=$('ob-nickNext'); btn.textContent='Entrar'; btn.disabled=false;
+  btn.onclick=()=>{ const raw=$('ob-nickInput').value.trim(); if(raw.length<2){ toastMsg('Digite seu apelido.'); return; } loginNick=raw; pinMode='login'; pinBuf=''; setDots(0); $('ob-pinTitle').textContent='Digite seu PIN'; $('ob-pinSub').textContent='Bem-vindo de volta!'; $('ob-pinMsg').textContent=''; $('ob-pinMsg').className='ob-msg'; obShow('ob-pin'); };
+}
+async function doLogin(nickRaw,pin){
+  const key=safeKey(nickRaw);
+  try{
+    const snap=await getDoc(doc(db,'usuarios',key));
+    if(!snap.exists()){ pinErr('Apelido não encontrado.'); return; }
+    const u=snap.data();
+    if(u.pin_hash!==await hashPin(pin,key)){ pinErr('PIN incorreto.'); return; }
+    session=u; localStorage.setItem('bora_session',key); await updateStreak(key,u); enterApp();
+  }catch(e){ console.error(e); pinErr('Sem conexão.'); }
+}
+function resetNickForCreate(){
+  $('ob-nickTitle').textContent='Qual será seu apelido?'; $('ob-nickSub').textContent='É como você aparece no ranking.';
+  $('ob-suggest').style.display=''; $('ob-nickHint').style.display='';
+  const btn=$('ob-nickNext'); btn.textContent='Continuar'; btn.disabled=true; btn.onclick=()=>obShow('ob-avatar');
+}
+
+/* ---------- streak ---------- */
+async function updateStreak(key,u){
+  const today=todayStr(); if(u.last_active===today) return;
+  const y=new Date(Date.now()-86400000).toLocaleDateString('en-CA');
+  const novo=(u.last_active===y)?(u.streak||1)+1:1;
+  try{ await updateDoc(doc(db,'usuarios',key),{ last_active:today, streak:novo }); session.streak=novo; }catch(e){ console.error(e); }
+}
+
+/* ---------- entrar no jogo / sair ---------- */
+function renderProfileBar(){ $('pb-av').innerHTML=avatarSVG(session.avatar); $('pb-nick').textContent=session.nick; $('pb-xp').textContent=session.xp||0; $('pb-streak').textContent=session.streak||1; }
+function enterApp(){
+  $('onboard').classList.add('hidden'); $('rankScreen').classList.add('hidden');
+  renderProfileBar(); $('profileBar').classList.remove('hidden');
+  if(typeof window.startApp==='function') window.startApp(session.apelido_lower);
+}
+function logout(){
+  localStorage.removeItem('bora_session'); session=null;
+  hideGameCards(); $('profileBar').classList.add('hidden'); $('rankScreen').classList.add('hidden');
+  draft={nick:'',avatar:null}; obShow('ob-welcome');
+}
+
+/* ---------- XP: chamado pelo jogo a cada acerto ---------- */
+async function onCorrect(enWord){
+  if(!session) return;
+  const key=String(enWord||'').toLowerCase().trim(); if(!key) return;
+  session.ap_learned=session.ap_learned||[];
+  if(session.ap_learned.includes(key)) return;   /* já aprendida → não pontua de novo */
+  session.ap_learned.push(key); session.xp=(session.xp||0)+10;
+  $('pb-xp').textContent=session.xp;
+  try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ ap_learned:arrayUnion(key), xp:increment(10) }); }catch(e){ console.error(e); }
+}
+
+/* ---------- ranking ---------- */
+async function openRanking(){
+  hideGameCards(); $('onboard').classList.add('hidden'); $('rankScreen').classList.remove('hidden'); window.scrollTo(0,0);
+  const list=$('rankList'); list.innerHTML='<div class="ob-sub">Carregando…</div>';
+  try{
+    const qs=await getDocs(query(collection(db,'usuarios'),orderBy('xp','desc'),limit(50)));
+    const all=[]; qs.forEach(d=>all.push(d.data()));
+    if(!all.length){ list.innerHTML='<div class="ob-sub">Ainda sem jogadores.</div>'; return; }
+    const md=['🥇','🥈','🥉'];
+    list.innerHTML=all.map((u,i)=>{
+      const me=session&&u.apelido_lower===session.apelido_lower;
+      const nm=u.nick||u.apelido_lower||'—';
+      return `<div class="rank-row ${me?'me':''}"><div class="pos ${i<3?'md':''}">${i<3?md[i]:(i+1)}</div><div class="rav">${avatarSVG(u.avatar)}</div><div class="rnm">${escapeHtml(nm)}${me?' (você)':''}</div><div class="rxp">${u.xp||0} <span>XP</span></div></div>`;
+    }).join('');
+  }catch(e){ console.error(e); list.innerHTML='<div class="ob-sub">Não deu pra carregar o ranking. Tente de novo.</div>'; }
+}
+
+/* ---------- ligações de UI ---------- */
+$('ob-createBtn').onclick=()=>{ draft={nick:'',avatar:null}; resetNickForCreate(); $('ob-nickInput').value=''; renderSuggest(); obShow('ob-nick'); };
+$('ob-loginBtn').onclick=startLogin;
+$('ob-avNext').onclick=startSetPin;
+$('ob-pinBack').onclick=()=>{ if(pinMode==='login') startLogin(); else obShow('ob-avatar'); };
+document.querySelectorAll('.ob-back[data-back]').forEach(b=>b.onclick=()=>{ const t=b.dataset.back; obShow(t==='welcome'?'ob-welcome':'ob-nick'); });
+$('ob-nickInput').addEventListener('input',onNick);
+$('pb-rank').onclick=openRanking; $('pb-out').onclick=logout;
+$('rank-back').onclick=()=>{ $('rankScreen').classList.add('hidden'); if(session){ $('home').classList.remove('hidden'); } else obShow('ob-welcome'); };
+
+window.BoraCloud={ onCorrect, openRanking };
+
+/* ---------- boot ---------- */
+$('ob-heroav').innerHTML=avatarSVG('robot1');
+buildKeypad(); renderSuggest();
+hideGameCards();
+
+(async function boot(){
+  try{
+    const app=initializeApp(firebaseConfig); auth=getAuth(app); db=getFirestore(app);
+    await signInAnonymously(auth); ready=true;
+  }catch(e){ console.error(e); toastMsg('Não deu pra conectar ao servidor.'); obShow('ob-welcome'); return; }
+  const saved=localStorage.getItem('bora_session');
+  if(saved){
+    try{ const snap=await getDoc(doc(db,'usuarios',saved)); if(snap.exists()){ session=snap.data(); await updateStreak(saved,session); enterApp(); return; } }catch(e){ console.error(e); }
+  }
+  obShow('ob-welcome');
+})();
+</script>
+
 </body>
 </html>
