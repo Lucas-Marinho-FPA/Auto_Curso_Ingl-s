@@ -263,6 +263,16 @@
   #brandHome{display:flex;flex-direction:column;align-items:center;gap:2px}
   .ob-title,.result .big,.prompt .word,.pbar .pnm,.rank-row .rnm{font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
   .btn-primary{font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
+
+  /* ===== Painel do caminho guiado (Etapa 2) ===== */
+  .guided-info{background:var(--card2);border:1px solid rgba(255,255,255,.06);border-radius:14px;padding:16px;text-align:center;margin-bottom:4px}
+  .guided-info .gi-title{font-family:'Fredoka','Segoe UI',sans-serif;font-weight:700;font-size:1.2rem}
+  .guided-info .gi-sub{color:var(--muted);font-size:.88rem;margin-top:4px}
+  .guided-info .gi-sub b{color:var(--accent2)}
+  .guided-info .gi-steps{display:flex;justify-content:center;gap:8px;margin-top:12px}
+  .guided-info .gi-step{font-size:.72rem;font-weight:800;color:var(--muted);background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:99px;padding:5px 11px}
+  .guided-info .gi-step.on{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .guided-info .gi-step.done{color:#86efac;border-color:rgba(34,197,94,.4)}
 </style>
 </head>
 <body>
@@ -389,7 +399,8 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="startBtn">▶ Começar</button>
+    <div id="guidedInfo" class="guided-info"></div>
+    <button class="btn-primary" id="startBtn">▶ Iniciar</button>
 
     <div class="stats-mini">
       <div><b id="stTotal">0</b>respondidas</div>
@@ -874,6 +885,7 @@ function goHome(){
   ['quiz','result','errscr','loading','topProgress'].forEach(id=>document.getElementById(id).classList.add('hidden'));
   document.getElementById('home').classList.remove('hidden'); refreshHomeStats(); updateLvlHint(); topHome();
   { const pb=document.getElementById('profileBar'); if(pb) pb.classList.remove('hidden'); }
+  renderGuidedInfo();
 }
 document.getElementById('startBtn').onclick=start;
 document.getElementById('againBtn').onclick=start;
@@ -911,7 +923,164 @@ async function init(force){
   buildLevelDD();
   refreshHomeStats(); updateLvlHint(); topHome();
   document.getElementById('home').classList.remove('hidden');
+  renderGuidedInfo();
 }
+/* ================= ETAPA 2 — CAMINHO GUIADO ================= */
+const LOTE = 10;
+const STAGE_LABEL = { enpt:'Qual a tradução?', pten:'Como se escreve em inglês?', type:'Escrita — digite em inglês' };
+const STAGE_SHORT = { enpt:'EN→PT', pten:'PT→EN', type:'Escrita' };
+const STAGE_ORDER = ['enpt','pten','type'];
+let gStage='enpt', gLevel='', gLoteWords=[], gQueue=[], gCurrent=null, gTotal=0, gDone=0;
+
+function keyOf(w){ return (w.en||'').toLowerCase().trim(); }
+function levelsAsc(){
+  return [...new Set(WORDS.map(w=>w.level))].sort((a,b)=>{
+    const na=parseFloat(a), nb=parseFloat(b);
+    if(!isNaN(na)&&!isNaN(nb)) return na-nb;
+    if(!isNaN(na)) return -1; if(!isNaN(nb)) return 1;
+    return String(a).localeCompare(String(b));
+  });
+}
+function wordsOfLevel(lv){ return WORDS.filter(w=>w.level===lv); }
+function domAll(p,k){ return p.enpt.has(k)&&p.pten.has(k)&&p.type.has(k); }
+
+async function computeGuidedState(){
+  if(!window.BoraCloud) return {done:true};
+  const p = window.BoraCloud.getProgress();
+  for(const lv of levelsAsc()){
+    if(p.completed.has(String(lv))) continue;
+    const lw = wordsOfLevel(lv); if(!lw.length) continue;
+    const lotes=[]; for(let i=0;i<lw.length;i+=LOTE) lotes.push(lw.slice(i,i+LOTE));
+    let li = lotes.findIndex(ch => ch.some(w=> !domAll(p,keyOf(w))));
+    if(li<0){ await window.BoraCloud.completeLevel(lv); continue; }
+    const ch = lotes[li];
+    let stage;
+    if(ch.some(w=>!p.enpt.has(keyOf(w)))) stage='enpt';
+    else if(ch.some(w=>!p.pten.has(keyOf(w)))) stage='pten';
+    else stage='type';
+    return { done:false, level:lv, loteIdx:li, loteCount:lotes.length, stage, loteWords:ch, prog:p };
+  }
+  return { done:true };
+}
+
+async function renderGuidedInfo(){
+  const box=document.getElementById('guidedInfo'); if(!box) return;
+  if(!window.BoraCloud){ box.innerHTML='<div class="gi-sub">Entre no seu perfil para começar.</div>'; return; }
+  const st=await computeGuidedState();
+  const start=document.getElementById('startBtn');
+  if(st.done){
+    box.innerHTML='<div class="gi-title">Tudo dominado! 🏆</div><div class="gi-sub">Você concluiu todas as palavras. Adicione mais na planilha para continuar.</div>';
+    start.disabled=true; start.textContent='Tudo dominado 🎉'; return;
+  }
+  start.disabled=false; start.textContent='▶ Iniciar';
+  const lvl = st.level===''?'Sem nível':'Nível '+st.level;
+  const steps = STAGE_ORDER.map(s=>{
+    const cls = s===st.stage ? 'on' : (STAGE_ORDER.indexOf(s)<STAGE_ORDER.indexOf(st.stage)?'done':'');
+    return '<span class="gi-step '+cls+'">'+STAGE_SHORT[s]+'</span>';
+  }).join('');
+  box.innerHTML='<div class="gi-title">'+lvl+'</div>'+
+    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteWords.length+' palavras</div>'+
+    '<div class="gi-steps">'+steps+'</div>';
+}
+
+async function startGuided(){
+  if(!window.BoraCloud){ toast&&toast('Entre no seu perfil.'); return; }
+  const st=await computeGuidedState();
+  if(st.done){ renderGuidedInfo(); return; }
+  gLevel=st.level; gStage=st.stage; gLoteWords=st.loteWords;
+  ACTIVE = WORDS.slice();                 /* iscas podem vir de qualquer palavra */
+  const set = st.prog[st.stage];
+  gQueue = shuffle(st.loteWords.filter(w=> !set.has(keyOf(w))));
+  gTotal = gQueue.length; gDone=0;
+  document.getElementById('home').classList.add('hidden');
+  document.getElementById('result').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  document.getElementById('topProgress').classList.remove('hidden');
+  { const pb=document.getElementById('profileBar'); if(pb) pb.classList.add('hidden'); }
+  document.getElementById('navBack').style.display='none';
+  document.getElementById('navNext').style.display='none';
+  renderGuided();
+}
+
+function renderGuided(){
+  if(!gQueue.length){ guidedStageDone(); return; }
+  const w=gQueue[0]; gCurrent=w; window.scrollTo(0,0);
+  document.getElementById('qExamples').innerHTML='';
+  document.getElementById('qNext').innerHTML='';
+  document.getElementById('qBar').style.width=(gTotal?gDone/gTotal*100:0)+'%';
+  document.getElementById('qCount').textContent=gDone+' / '+gTotal+' dominadas';
+  document.getElementById('qScore').textContent=STAGE_SHORT[gStage];
+  document.getElementById('qStreak').textContent=(gLevel===''?'Sem nível':'Nv '+gLevel);
+  const body=document.getElementById('qQuestion'); body.innerHTML='';
+  if(gStage==='enpt' || gStage==='pten'){
+    const showKey= gStage==='enpt'?'en':'pt';
+    const ansKey = gStage==='enpt'?'pt':'en';
+    topQuestion(STAGE_LABEL[gStage], w.level);
+    body.innerHTML='<div class="prompt"><div class="wordrow"><span class="word">'+esc(w[showKey])+'</span>'+(gStage==='enpt'?'<button class="speak-sm" title="Ouvir">🔊</button>':'')+'</div>'+((gStage==='enpt'&&w.pron)?'<div class="pronq">'+esc(w.pron)+'</div>':'')+'</div><div class="options"></div>';
+    if(gStage==='enpt'){ const sb=body.querySelector('.speak-sm'); if(sb) sb.onclick=()=>speak(w.en); }
+    const opts=distractors(w, ansKey, 3);
+    const box=body.querySelector('.options'); box.dataset.answer=w[ansKey];
+    opts.forEach(o=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o; b.onclick=()=>guidedChoose(b, o===w[ansKey], w, box, ansKey); box.appendChild(b); });
+  } else {
+    const ansKey='en';
+    topQuestion(STAGE_LABEL.type, w.level);
+    body.innerHTML='<div class="prompt"><div class="wordrow"><span class="word">'+esc(w.pt)+'</span></div></div><input class="type-in" id="typeIn" placeholder="digite em inglês..." autocomplete="off" autocapitalize="off"><button class="next-btn" id="checkBtn">Conferir</button>';
+    const inp=document.getElementById('typeIn'); if(inp) inp.focus();
+    const check=()=>{ const ok=isCorrect(inp.value, w[ansKey]); inp.disabled=true; const cb=document.getElementById('checkBtn'); if(cb) cb.remove(); guidedResolve(ok,w,ansKey); };
+    document.getElementById('checkBtn').onclick=check;
+    inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
+  }
+}
+
+function guidedChoose(btn, correct, w, box, ansKey){
+  [...box.children].forEach(b=>b.disabled=true);
+  if(correct){ btn.classList.add('correct'); }
+  else{ btn.classList.add('wrong'); const t=box.dataset.answer; [...box.children].forEach(b=>{ if(b.textContent===t) b.classList.add('correct'); }); }
+  guidedResolve(correct,w,ansKey);
+}
+
+function guidedResolve(correct, w, ansKey){
+  topAnswer(correct, correct?null:w[ansKey]);
+  const ex=buildExamples(w); const host=document.getElementById('qExamples'); host.innerHTML=''; if(ex) host.appendChild(ex);
+  if(correct){ gQueue.shift(); gDone++; window.BoraCloud.markMastered(gStage, keyOf(w)); }
+  else{ const cur=gQueue.shift(); gQueue.push(cur); }
+  document.getElementById('qBar').style.width=(gTotal?gDone/gTotal*100:0)+'%';
+  document.getElementById('qCount').textContent=gDone+' / '+gTotal+' dominadas';
+  const nx=document.getElementById('qNext');
+  nx.innerHTML='<button class="next-btn" id="gContinue">Continuar ›</button>';
+  document.getElementById('gContinue').onclick=renderGuided;
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+async function guidedStageDone(){
+  const prevStage=gStage, prevLevel=gLevel;
+  const st=await computeGuidedState();
+  document.getElementById('topProgress').classList.add('hidden');
+  document.getElementById('qExamples').innerHTML='';
+  document.getElementById('qNext').innerHTML='';
+  topHide();
+  const body=document.getElementById('qQuestion');
+  if(st.done){
+    body.innerHTML='<div class="result"><div style="font-size:3rem">🏆</div><div class="big" style="font-size:1.9rem">Tudo dominado!</div><div class="msg">Você concluiu todas as palavras disponíveis. Adicione mais na planilha para continuar.</div></div><button class="btn-primary" id="gHome">🏠 Voltar ao menu</button>';
+    document.getElementById('gHome').onclick=goHome; return;
+  }
+  let emoji='✅', title='Etapa concluída!', sub='Agora: '+STAGE_SHORT[st.stage];
+  if(String(st.level)!==String(prevLevel)){ emoji='🏆'; title='Nível dominado!'; sub='Você concluiu o '+(prevLevel===''?'grupo sem nível':'Nível '+prevLevel)+'. Agora: '+(st.level===''?'Sem nível':'Nível '+st.level)+' · '+STAGE_SHORT[st.stage]; }
+  else if(prevStage==='type'){ emoji='🎉'; title='Grupo dominado!'; sub='Próximo grupo · '+STAGE_SHORT[st.stage]; }
+  body.innerHTML='<div class="result"><div style="font-size:3rem">'+emoji+'</div><div class="big" style="font-size:1.8rem">'+title+'</div><div class="msg">'+sub+'</div></div><button class="btn-primary" id="gNextStage">Continuar ›</button><button class="btn-ghost" id="gHome2">🏠 Sair para o menu</button>';
+  document.getElementById('gNextStage').onclick=startGuided;
+  document.getElementById('gHome2').onclick=goHome;
+}
+
+/* ganchos do menu guiado (sobrescreve o modo livre) */
+document.getElementById('startBtn').onclick=startGuided;
+try{ document.getElementById('ddMode').closest('.field').classList.add('hidden'); }catch(e){}
+try{ document.getElementById('ddLevel').closest('.field').classList.add('hidden'); }catch(e){}
+try{ document.getElementById('ddLen').closest('.field').classList.add('hidden'); }catch(e){}
+try{ document.querySelector('.stats-mini').classList.add('hidden'); }catch(e){}
+try{ document.getElementById('resetBtn').classList.add('hidden'); }catch(e){}
+
+
 window.startApp = function(user){ if(user) CURRENT_USER = user; prog = loadProg(); return init(); };
 </script>
 <script type="module">
@@ -1010,7 +1179,7 @@ async function createProfile(pin){
   try{
     const ref=doc(db,'usuarios',key);
     if((await getDoc(ref)).exists()){ toastMsg('Esse apelido já existe. Escolha outro.'); obShow('ob-nick'); $('ob-keypad').classList.remove('ob-busy'); return; }
-    const data={ nick:draft.nick, apelido_lower:key, avatar:draft.avatar, pin_hash:await hashPin(pin,key), owner_uid:auth.currentUser.uid, xp:0, streak:1, last_active:todayStr(), ap_learned:[], criado_em:serverTimestamp() };
+    const data={ nick:draft.nick, apelido_lower:key, avatar:draft.avatar, pin_hash:await hashPin(pin,key), owner_uid:auth.currentUser.uid, xp:0, streak:1, last_active:todayStr(), ap_learned:[], m_enpt:[], m_pten:[], m_type:[], completed_levels:[], criado_em:serverTimestamp() };
     await setDoc(ref,data); session=data; localStorage.setItem('bora_session',key); enterApp();
   }catch(e){ console.error(e); toastMsg('Sem conexão. Tente de novo.'); $('ob-keypad').classList.remove('ob-busy'); }
 }
@@ -1096,7 +1265,12 @@ $('ob-nickInput').addEventListener('input',onNick);
 $('pb-rank').onclick=openRanking; $('pb-out').onclick=logout;
 $('rank-back').onclick=()=>{ $('rankScreen').classList.add('hidden'); if(session){ $('home').classList.remove('hidden'); } else obShow('ob-welcome'); };
 
-window.BoraCloud={ onCorrect, openRanking };
+window.BoraCloud={
+  onCorrect, openRanking,
+  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0 }),
+  markMastered: async (t,key)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ [f]:arrayUnion(key), xp:increment(10) }); }catch(e){ console.error(e); } },
+  completeLevel: async (lv)=>{ if(!session) return; session.completed_levels=session.completed_levels||[]; if(session.completed_levels.includes(String(lv))) return; session.completed_levels.push(String(lv)); try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ completed_levels:arrayUnion(String(lv)) }); }catch(e){ console.error(e); } }
+};
 
 /* ---------- boot ---------- */
 $('ob-heroav').innerHTML=avatarSVG('robot1');
