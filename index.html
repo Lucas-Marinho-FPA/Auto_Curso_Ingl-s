@@ -307,11 +307,11 @@
     background:radial-gradient(circle,rgba(46,140,255,.55),rgba(46,140,255,0) 62%);filter:blur(14px);pointer-events:none;z-index:0}
   .app{position:relative;z-index:1}
   #ob-welcome{position:relative;display:flex;flex-direction:column;align-items:center;padding:0;background:none;border:none;box-shadow:none}
-  .ob-logo-circle{position:relative;z-index:1;width:132px;height:132px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-    margin:6px auto 40px;background:radial-gradient(circle at 50% 42%,#0c2748,#04162c);
+  .ob-logo-circle{position:relative;z-index:1;width:132px;height:132px;border-radius:50%;overflow:hidden;
+    margin:6px auto 40px;background:#04162c;
     border:1px solid rgba(255,255,255,.10);box-shadow:0 0 78px rgba(46,140,255,.30),0 22px 50px rgba(0,0,0,.45);
     animation:obFloat 5s ease-in-out infinite}
-  .ob-logo-circle svg{width:76px;height:76px;display:block}
+  .ob-logo-circle img{width:100%;height:100%;object-fit:cover;transform:scale(1.06)}
   .ob-card{position:relative;overflow:hidden;width:100%;padding:34px;border-radius:34px;
     background:rgba(16,44,74,.42);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
     border:1px solid rgba(255,255,255,.10);box-shadow:0 26px 60px rgba(0,0,0,.4);animation:obFadeUp .8s ease;z-index:1}
@@ -367,35 +367,7 @@
   <div id="onboard" class="hidden">
     <div id="ob-welcome">
       <div class="ob-logo-glow"></div>
-      <div class="ob-logo-circle"><svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
-  <defs>
-    <linearGradient id="o" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#FFA83A"/>
-      <stop offset="100%" stop-color="#FF6A00"/>
-    </linearGradient>
-  </defs>
-
-  <path d="M60 44
-           h82
-           c28 0 46 18 46 42
-           c0 18-10 31-27 37
-           c20 6 33 21 33 43
-           c0 30-22 46-56 46
-           h-78
-           c-9 0-16-7-16-16
-           V60
-           c0-9 7-16 16-16z"
-        fill="url(#o)"/>
-
-  <path fill="#0A1F3E"
-        d="M84 74 h48
-           c16 0 26 8 26 21
-           c0 12-9 20-25 20H108v20h28
-           c19 0 30 9 30 24
-           c0 16-11 27-32 27H84z"/>
-
-  <path d="M108 212 L128 212 L118 232 Z" fill="url(#o)"/>
-</svg></div>
+      <div class="ob-logo-circle"><img src="icon.png" alt="Bora de Inglês"></div>
       <div class="ob-card">
         <h1 class="ob-h1">Aprenda inglês<span>de forma inteligente.</span></h1>
         <p class="ob-p">Sua jornada começa aqui. Evolua todo dia e dispute o ranking com a família.</p>
