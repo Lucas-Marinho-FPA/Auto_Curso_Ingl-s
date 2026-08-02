@@ -307,6 +307,7 @@
     background:radial-gradient(circle,rgba(46,140,255,.55),rgba(46,140,255,0) 62%);filter:blur(14px);pointer-events:none;z-index:0}
   .app{position:relative;z-index:1}
   #ob-welcome{position:relative;display:flex;flex-direction:column;align-items:center;padding:0;background:none;border:none;box-shadow:none}
+  .ob-logo-img{position:relative;z-index:1;width:190px;height:190px;object-fit:contain;display:block;margin:0 auto 26px;animation:obFloat 5s ease-in-out infinite;filter:drop-shadow(0 18px 34px rgba(0,0,0,.45))}
   .ob-logo-circle{position:relative;z-index:1;width:132px;height:132px;border-radius:50%;overflow:hidden;
     margin:6px auto 40px;background:#04162c;
     border:1px solid rgba(255,255,255,.10);box-shadow:0 0 78px rgba(46,140,255,.30),0 22px 50px rgba(0,0,0,.45);
@@ -366,8 +367,7 @@
   <!-- ===== PERFIL / ONBOARDING ===== -->
   <div id="onboard" class="hidden">
     <div id="ob-welcome">
-      <div class="ob-logo-glow"></div>
-      <div class="ob-logo-circle"><img src="icon.png" alt="Bora de Inglês"></div>
+      <img class="ob-logo-img" src="icon-b.png" alt="Bora de Inglês">
       <div class="ob-card">
         <h1 class="ob-h1">Aprenda inglês<span>de forma inteligente.</span></h1>
         <p class="ob-p">Sua jornada começa aqui. Evolua todo dia e dispute o ranking com a família.</p>
