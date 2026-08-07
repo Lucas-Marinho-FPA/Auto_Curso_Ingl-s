@@ -158,6 +158,9 @@
   .spd-bar .spd-label{font-size:.8rem;font-weight:700;color:var(--muted)}
   .spd-controls{display:flex;align-items:center;gap:8px}
   .spd-now{font-size:.85rem;font-weight:800;color:var(--accent2);min-width:34px;text-align:center}
+  .correction{background:rgba(255,122,26,.12);border:1px solid rgba(255,122,26,.32);color:var(--accent2);
+    border-radius:12px;padding:11px 14px;margin-bottom:10px;font-weight:700;font-size:.92rem}
+  .correction b{color:#fff}
 
   .options{display:grid;gap:10px}
   .opt{
@@ -1144,7 +1147,7 @@ function renderGuided(){
     topQuestion(STAGE_LABEL.type, w.level);
     body.innerHTML='<div class="prompt"><div class="wordrow"><span class="word">'+esc(w.pt)+'</span></div></div><input class="type-in" id="typeIn" placeholder="digite em inglês..." autocomplete="off" autocapitalize="off"><button class="next-btn" id="checkBtn">Conferir</button>';
     const inp=document.getElementById('typeIn'); if(inp) inp.focus();
-    const check=()=>{ const ok=isCorrect(inp.value, w[ansKey]); inp.disabled=true; const cb=document.getElementById('checkBtn'); if(cb) cb.remove(); guidedResolve(ok,w,ansKey); };
+    const check=()=>{ const val=inp.value; const exact=val.trim().toLowerCase()===w.en.trim().toLowerCase(); const ok=isCorrect(val, w[ansKey]); inp.disabled=true; const cb=document.getElementById('checkBtn'); if(cb) cb.remove(); guidedResolve(ok,w,ansKey,(ok&&!exact)?w.en:null); };
     document.getElementById('checkBtn').onclick=check;
     inp.addEventListener('keydown',e=>{ if(e.key==='Enter') check(); });
   }
@@ -1157,9 +1160,11 @@ function guidedChoose(btn, correct, w, box, ansKey){
   guidedResolve(correct,w,ansKey);
 }
 
-function guidedResolve(correct, w, ansKey){
+function guidedResolve(correct, w, ansKey, correction){
   topAnswer(correct, correct?null:w[ansKey]);
-  const ex=buildExamples(w); const host=document.getElementById('qExamples'); host.innerHTML=''; if(ex) host.appendChild(ex);
+  const host=document.getElementById('qExamples'); host.innerHTML='';
+  if(correction){ const c=document.createElement('div'); c.className='correction'; c.innerHTML='Quase! A grafia correta é <b>'+esc(correction)+'</b>.'; host.appendChild(c); }
+  const ex=buildExamples(w); if(ex) host.appendChild(ex);
   if(correct){ gQueue.shift(); gDone++; window.BoraCloud.markMastered(gStage, keyOf(w)); }
   else{ const cur=gQueue.shift(); gQueue.push(cur); }
   document.getElementById('qBar').style.width=(gTotal?gDone/gTotal*100:0)+'%';
@@ -1197,8 +1202,8 @@ document.getElementById('startBtn').onclick=startGuided;
   const fmt=r=>(r).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×';
   const upd=()=>{ if(now) now.textContent=fmt(SPEAK_RATE); };
   const mn=document.getElementById('spdMinus'), pl=document.getElementById('spdPlus');
-  if(mn) mn.onclick=()=>{ setRate(-0.15); upd(); speak('one two three'); };
-  if(pl) pl.onclick=()=>{ setRate(0.15); upd(); speak('one two three'); };
+  if(mn) mn.onclick=()=>{ setRate(-0.15); upd(); };
+  if(pl) pl.onclick=()=>{ setRate(0.15); upd(); };
   upd();
 })();
 try{ document.getElementById('ddMode').closest('.field').classList.add('hidden'); }catch(e){}
@@ -1267,7 +1272,7 @@ function todayStr(){ return new Date().toLocaleDateString('en-CA'); }
 let _tt; function toastMsg(m){ const t=$('obToast'); t.textContent=m; t.classList.add('show'); clearTimeout(_tt); _tt=setTimeout(()=>t.classList.remove('show'),2400); }
 
 /* ---------- telas do onboarding ---------- */
-function obShow(id){ ['ob-welcome','ob-nick','ob-avatar','ob-pin'].forEach(x=>$(x).classList.add('hidden')); $('onboard').classList.remove('hidden'); $(id).classList.remove('hidden'); document.body.classList.toggle('welcome-mode', id==='ob-welcome'); window.scrollTo(0,0); }
+function obShow(id){ ['ob-welcome','ob-nick','ob-avatar','ob-pin'].forEach(x=>$(x).classList.add('hidden')); $('onboard').classList.remove('hidden'); $(id).classList.remove('hidden'); document.body.classList.toggle('welcome-mode', id==='ob-welcome'); if(id==='ob-avatar') buildGrid(); window.scrollTo(0,0); }
 function hideGameCards(){ ['loading','home','quiz','result','errscr','topProgress'].forEach(id=>{ const el=$(id); if(el) el.classList.add('hidden'); }); }
 
 /* ---------- sugestões de apelido ---------- */
