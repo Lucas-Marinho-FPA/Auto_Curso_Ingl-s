@@ -402,13 +402,32 @@
   .am-rows>div span{color:var(--text);text-align:right}
   .am-pick{margin-top:16px}
 
-  /* ===== Placa de vidro na tela de escolha (igual à barra do perfil) ===== */
+  /* ===== Placa de vidro na tela de escolha (espirais VISÍVEIS) ===== */
   #ob-avatar{
-    background:rgba(255,255,255,.05) !important;
-    backdrop-filter:blur(12px) saturate(1.1);-webkit-backdrop-filter:blur(12px) saturate(1.1);
-    border:1px solid rgba(255,255,255,.10) !important;
-    box-shadow:0 18px 44px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12) !important;
+    background:rgba(255,255,255,.028) !important;
+    backdrop-filter:blur(2px) saturate(1.15) !important;-webkit-backdrop-filter:blur(2px) saturate(1.15) !important;
+    border:1px solid rgba(255,255,255,.085) !important;
+    box-shadow:0 18px 44px rgba(0,0,0,.26), inset 0 1px 0 rgba(255,255,255,.09) !important;
   }
+  #ob-avatar::before{display:none}
+
+  /* ===== Enquadramento calibrado dos bichos ===== */
+  .av-img{
+    width:100%;height:100%;object-fit:contain;display:block;background:none;
+    transform:translate(calc(var(--ax,0) * -100%), calc(var(--ay,0) * -100%)) scale(var(--az,1));
+    transform-origin:50% 50%;
+  }
+  .ob-cell, .am-av, .pbar .pav, .rank-row .rav{
+    overflow:hidden;padding:0 !important;
+    background:radial-gradient(circle at 50% 50%, #1B4A7C 0%, #081A30 100%) !important;
+  }
+  /* tela de escolha: quadrado arredondado, aro laranja SO no selecionado */
+  .ob-cell{padding:0 !important;border-radius:18px !important;border:2px solid transparent !important;outline:none !important}
+  .ob-cell.sel{border-color:var(--accent) !important;box-shadow:0 8px 22px rgba(255,122,26,.34) !important}
+  .ob-cell:hover{border-color:rgba(255,255,255,.16) !important}
+  /* perfil / ranking / modal: circulo com aro */
+  .pbar .pav, .rank-row .rav{border-radius:50% !important;border:2px solid rgba(255,122,26,.55)}
+  .am-av{border-radius:50%;border:3px solid var(--accent) !important;box-shadow:0 0 0 2px rgba(255,176,97,.28)}
 </style>
 </head>
 <body>
@@ -1293,7 +1312,17 @@ const ANIMALS = [
 ];
 const ANIMAL_BY_ID = Object.fromEntries(ANIMALS.map(a=>[a.id,a]));
 const AV_IDS = ANIMALS.map(a=>a.id);
-function avatarSVG(id){ const a=ANIMAL_BY_ID[id]; const nm=(a?id:'harpia'); const nome=(a?a.nome:'Avatar').replace(/"/g,''); return '<img class="av-img" src="avatars/avatars/'+nm+'.png" onerror="if(!this.dataset.s){this.dataset.s=1;this.src=\'avatars/'+nm+'.png\'}else if(this.dataset.s==\'1\'){this.dataset.s=2;this.src=\''+nm+'.png\'}" alt="'+nome+'" loading="lazy">'; }
+/* Enquadramento calibrado por bicho: z=zoom, x=+esquerda/-direita, y=+sobe/-desce */
+const AV_FIT={
+  harpia:{z:.90,y:-.03},      onca:{z:.82,y:-.03},        lobo:{z:.92,x:.03,y:-.03},
+  sucuri:{z:.82,y:-.03},      arara:{z:.82,x:.04,y:-.03}, tucano:{z:.82,y:-.03},
+  mico:{z:.90,x:.03,y:-.03},  sapo_ouro:{z:.76,x:.04,y:-.03}, sapo_azul:{z:.76,x:.04,y:-.03},
+  preguica:{z:.90,x:.04,y:-.03}, capivara:{z:.82,y:-.03},  tamandua:{z:.82,y:-.03},
+  boto:{z:.82,y:-.03},        tatu:{z:.82,y:-.03},        pirarucu:{z:.82,y:-.03},
+  falcao:{z:.82,y:-.03},      anta:{z:.82,y:-.03},        ariranha:{z:.82,y:-.03},
+  urubu:{z:.82,y:-.03},       bugio:{z:.90,x:.04,y:-.03}, jacare:{z:.82,y:-.03}
+};
+function avatarSVG(id){ const a=ANIMAL_BY_ID[id]; const nm=(a?id:'harpia'); const nome=(a?a.nome:'Avatar').replace(/"/g,''); const f=AV_FIT[nm]||{z:.82,y:-.03}; const st='--az:'+(f.z||.82)+';--ax:'+(f.x||0)+';--ay:'+(f.y||0)+';'; return '<img class="av-img" style="'+st+'" src="avatars/avatars/'+nm+'.png" onerror="if(!this.dataset.s){this.dataset.s=1;this.src=\'avatars/'+nm+'.png\'}else if(this.dataset.s==\'1\'){this.dataset.s=2;this.src=\''+nm+'.png\'}" alt="'+nome+'" loading="lazy">'; }
 
 /* ---------- estado ---------- */
 let db=null, auth=null, ready=false, session=null;
