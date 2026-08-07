@@ -426,7 +426,21 @@
   .ob-cell.sel{border-color:var(--accent) !important;box-shadow:0 8px 22px rgba(255,122,26,.34) !important}
   .ob-cell:hover{border-color:rgba(255,255,255,.16) !important}
   /* perfil / ranking / modal: circulo com aro */
-  .pbar .pav, .rank-row .rav{border-radius:50% !important;border:2px solid rgba(255,122,26,.55)}
+  .pbar .pav{border-radius:50% !important;border:2px solid rgba(255,122,26,.55)}
+  /* ranking: temperatura do aro (podio quente -> resto azul) */
+  .rank-row .rav{border-radius:50% !important;border:2px solid rgba(78,134,196,.59)}
+  .rank-row .rav.p1{border-color:rgba(255,122,26,1);box-shadow:0 0 14px rgba(255,122,26,.45)}
+  .rank-row .rav.p2{border-color:rgba(255,122,26,.80)}
+  .rank-row .rav.p3{border-color:rgba(255,122,26,.57)}
+  /* selinho numerado no lugar do emoji */
+  .rank-row .pos.md{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
+    font-size:.85rem;font-weight:800;color:#0E2742}
+  .rank-row .pos.m1{background:#FFC84A}
+  .rank-row .pos.m2{background:#C9D6E4}
+  .rank-row .pos.m3{background:#D89254}
+  /* card do proprio usuario */
+  .rank-row.me{background:rgba(255,122,26,.10) !important;border-color:var(--accent) !important}
+  .rank-row .eu{color:var(--accent2);font-weight:800;font-size:.85rem;margin-left:6px}
   .am-av{border-radius:50%;border:3px solid var(--accent) !important;box-shadow:0 0 0 2px rgba(255,176,97,.28)}
 </style>
 </head>
@@ -1462,11 +1476,10 @@ async function openRanking(){
     const qs=await getDocs(query(collection(db,'usuarios'),orderBy('xp','desc'),limit(50)));
     const all=[]; qs.forEach(d=>all.push(d.data()));
     if(!all.length){ list.innerHTML='<div class="ob-sub">Ainda sem jogadores.</div>'; return; }
-    const md=['🥇','🥈','🥉'];
     list.innerHTML=all.map((u,i)=>{
       const me=session&&u.apelido_lower===session.apelido_lower;
       const nm=u.nick||u.apelido_lower||'—';
-      return `<div class="rank-row ${me?'me':''}"><div class="pos ${i<3?'md':''}">${i<3?md[i]:(i+1)}</div><div class="rav">${avatarSVG(u.avatar)}</div><div class="rnm">${escapeHtml(nm)}${me?' (você)':''}</div><div class="rxp">${u.xp||0} <span>XP</span></div></div>`;
+      return `<div class="rank-row ${me?'me':''}"><div class="pos ${i<3?'md m'+(i+1):''}">${i+1}</div><div class="rav ${i<3?'p'+(i+1):''}">${avatarSVG(u.avatar)}</div><div class="rnm">${escapeHtml(nm)}${me?'<span class="eu">(você)</span>':''}</div><div class="rxp">${u.xp||0} <span>XP</span></div></div>`;
     }).join('');
   }catch(e){ console.error(e); list.innerHTML='<div class="ob-sub">Não deu pra carregar o ranking. Tente de novo.</div>'; }
 }
