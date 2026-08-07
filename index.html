@@ -433,6 +433,21 @@
   .rank-row .rav.p2{border-color:rgba(255,122,26,.80)}
   .rank-row .rav.p3{border-color:rgba(255,122,26,.57)}
   /* selinho numerado no lugar do emoji */
+  /* painel de bônus da rodada */
+  .bonus-box{margin:14px 0 4px;border-radius:16px;padding:12px 14px;
+    background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.09);
+    backdrop-filter:blur(3px) saturate(1.15);-webkit-backdrop-filter:blur(3px) saturate(1.15)}
+  .bonus-row{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:7px 0;font-size:.93rem;color:var(--text);animation:bonusIn .34s ease both}
+  .bonus-row:nth-child(2){animation-delay:.09s}
+  .bonus-row:nth-child(3){animation-delay:.18s}
+  .bonus-row b{color:var(--accent2);font-weight:800;white-space:nowrap}
+  .bonus-tot{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:8px;padding-top:10px;border-top:1px solid rgba(255,255,255,.10);
+    font-weight:800;color:var(--text)}
+  .bonus-tot b{color:var(--accent);font-size:1.12rem}
+  .streak-line{text-align:center;margin:10px 0 2px;font-weight:800;color:var(--accent2);letter-spacing:.3px}
+  @keyframes bonusIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
   .rank-row .pos.md{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
     font-size:.85rem;font-weight:800;color:#0E2742}
   .rank-row .pos.m1{background:#FFC84A}
@@ -1112,11 +1127,12 @@ async function init(force){
   renderGuidedInfo();
 }
 /* ================= ETAPA 2 — CAMINHO GUIADO ================= */
-const LOTE = 10;
+const LOTE = 10, SUB = 5;
 const STAGE_LABEL = { enpt:'Qual a tradução?', pten:'Como se escreve em inglês?', type:'Escrita — digite em inglês' };
 const STAGE_SHORT = { enpt:'EN→PT', pten:'PT→EN', type:'Escrita' };
 const STAGE_ORDER = ['enpt','pten','type'];
 let gStage='enpt', gLevel='', gLoteWords=[], gQueue=[], gCurrent=null, gTotal=0, gDone=0;
+let gLote=0, gHalf=0, gHalfLast=true;
 
 function keyOf(w){ return (w.en||'').toLowerCase().trim(); }
 function levelsAsc(){
@@ -1140,11 +1156,16 @@ async function computeGuidedState(){
     let li = lotes.findIndex(ch => ch.some(w=> !domAll(p,keyOf(w))));
     if(li<0){ await window.BoraCloud.completeLevel(lv); continue; }
     const ch = lotes[li];
+    const halves=[]; for(let i=0;i<ch.length;i+=SUB) halves.push(ch.slice(i,i+SUB));
+    let hi = halves.findIndex(h => h.some(w=> !domAll(p,keyOf(w))));
+    if(hi<0) hi = halves.length-1;
+    const half = halves[hi];
     let stage;
-    if(ch.some(w=>!p.enpt.has(keyOf(w)))) stage='enpt';
-    else if(ch.some(w=>!p.pten.has(keyOf(w)))) stage='pten';
+    if(half.some(w=>!p.enpt.has(keyOf(w)))) stage='enpt';
+    else if(half.some(w=>!p.pten.has(keyOf(w)))) stage='pten';
     else stage='type';
-    return { done:false, level:lv, loteIdx:li, loteCount:lotes.length, stage, loteWords:ch, prog:p };
+    return { done:false, level:lv, loteIdx:li, loteCount:lotes.length, stage, loteWords:half,
+             half:hi, halfCount:halves.length, halfLast:(hi===halves.length-1), loteAll:ch, prog:p };
   }
   return { done:true };
 }
@@ -1161,7 +1182,8 @@ async function renderGuidedInfo(){
   start.disabled=false; start.textContent='▶ Iniciar';
   const lvl = st.level===''?'Sem nível':'Nível '+st.level;
   box.innerHTML='<div class="gi-title">'+lvl+'</div>'+
-    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteWords.length+' palavras</div>';
+    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteAll.length+' palavras</div>'+
+    '<div class="gi-sub">Rodada de <b>'+st.loteWords.length+'</b> · '+(st.halfLast?'fecha o grupo':'primeira metade')+'</div>';
 }
 
 async function startGuided(){
@@ -1169,6 +1191,7 @@ async function startGuided(){
   const st=await computeGuidedState();
   if(st.done){ renderGuidedInfo(); return; }
   gLevel=st.level; gStage=st.stage; gLoteWords=st.loteWords;
+  gLote=st.loteIdx; gHalf=st.half; gHalfLast=st.halfLast;
   ACTIVE = WORDS.slice();                 /* iscas podem vir de qualquer palavra */
   const set = st.prog[st.stage];
   gQueue = shuffle(st.loteWords.filter(w=> !set.has(keyOf(w))));
@@ -1225,7 +1248,7 @@ function guidedResolve(correct, w, ansKey, correction){
   const host=document.getElementById('qExamples'); host.innerHTML='';
   if(correction){ const c=document.createElement('div'); c.className='correction'; c.innerHTML='Quase! A grafia correta é <b>'+esc(correction)+'</b>.'; host.appendChild(c); }
   const ex=buildExamples(w); if(ex) host.appendChild(ex);
-  if(correct){ gQueue.shift(); gDone++; window.BoraCloud.markMastered(gStage, keyOf(w)); }
+  if(correct){ gQueue.shift(); gDone++; window.BoraCloud.markMastered(gStage, keyOf(w), gLevel); }
   else{ const cur=gQueue.shift(); gQueue.push(cur); }
   document.getElementById('qBar').style.width=(gTotal?gDone/gTotal*100:0)+'%';
   document.getElementById('qCount').textContent=gDone+' / '+gTotal+' dominadas';
@@ -1236,7 +1259,11 @@ function guidedResolve(correct, w, ansKey, correction){
 }
 
 async function guidedStageDone(){
-  const prevStage=gStage, prevLevel=gLevel;
+  const prevStage=gStage, prevLevel=gLevel, prevLote=gLote, prevHalf=gHalf, prevLast=gHalfLast;
+  let premio=null;
+  if(prevStage==='type' && window.BoraCloud.closeHalf){
+    premio = await window.BoraCloud.closeHalf({ level:prevLevel, lote:prevLote, half:prevHalf, last:prevLast });
+  }
   const st=await computeGuidedState();
   document.getElementById('topProgress').classList.add('hidden');
   document.getElementById('qExamples').innerHTML='';
@@ -1249,8 +1276,17 @@ async function guidedStageDone(){
   }
   let emoji='✅', title='Etapa concluída!', sub='Agora: '+STAGE_SHORT[st.stage];
   if(String(st.level)!==String(prevLevel)){ emoji='🏆'; title='Nível dominado!'; sub='Você concluiu o '+(prevLevel===''?'grupo sem nível':'Nível '+prevLevel)+'. Agora: '+(st.level===''?'Sem nível':'Nível '+st.level)+' · '+STAGE_SHORT[st.stage]; }
-  else if(prevStage==='type'){ emoji='🎉'; title='Grupo dominado!'; sub='Próximo grupo · '+STAGE_SHORT[st.stage]; }
-  body.innerHTML='<div class="result"><div style="font-size:3rem">'+emoji+'</div><div class="big" style="font-size:1.8rem">'+title+'</div><div class="msg">'+sub+'</div></div><button class="btn-primary" id="gNextStage">Continuar ›</button><button class="btn-ghost" id="gHome2">🏠 Sair para o menu</button>';
+  else if(prevStage==='type'){
+    if(prevLast){ emoji='🎉'; title='Rodada completa!'; sub='Você fechou o grupo de 10 palavras.'; }
+    else { emoji='💪'; title='5 palavras dominadas!'; sub='Ciclo completo nas três etapas. Faltam só mais 5 pra fechar o grupo e garantir o bônus maior.'; }
+  }
+  let extra='';
+  if(premio && premio.ganhos && premio.ganhos.length){
+    extra='<div class="bonus-box">'+premio.ganhos.map(g=>'<div class="bonus-row"><span>'+g.label+'</span><b>+'+g.xp+' XP</b></div>').join('')+
+      '<div class="bonus-tot"><span>Total desta rodada</span><b>+'+premio.total+' XP</b></div></div>';
+    if(premio.streak>1) extra+='<div class="streak-line">🔥 Sequência de '+premio.streak+' dias</div>';
+  }
+  body.innerHTML='<div class="result"><div style="font-size:3rem">'+emoji+'</div><div class="big" style="font-size:1.8rem">'+title+'</div><div class="msg">'+sub+'</div></div>'+extra+'<button class="btn-primary" id="gNextStage">Continuar ›</button><button class="btn-ghost" id="gHome2">🏠 Sair para o menu</button>';
   document.getElementById('gNextStage').onclick=startGuided;
   document.getElementById('gHome2').onclick=goHome;
 }
@@ -1494,11 +1530,74 @@ $('ob-nickInput').addEventListener('input',onNick);
 $('pb-rank').onclick=openRanking; $('pb-out').onclick=logout;
 $('rank-back').onclick=()=>{ $('rankScreen').classList.add('hidden'); if(session){ $('home').classList.remove('hidden'); } else obShow('ob-welcome'); };
 
+/* ---- dia de Brasília (UTC-3) e XP por nível ---- */
+function diaBR(ms){ return new Date((ms||Date.now())-3*3600*1000).toISOString().slice(0,10); }
+function diaSoma(d,n){ const t=new Date(d+'T12:00:00Z'); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10); }
+function nvKey(lv){ const s=String(lv===''||lv==null?'sn':lv).replace(/[^a-zA-Z0-9]/g,'_'); return s||'sn'; }
+
 window.BoraCloud={
   onCorrect, openRanking,
   getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0 }),
-  markMastered: async (t,key)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ [f]:arrayUnion(key), xp:increment(10) }); }catch(e){ console.error(e); } },
-  completeLevel: async (lv)=>{ if(!session) return; session.completed_levels=session.completed_levels||[]; if(session.completed_levels.includes(String(lv))) return; session.completed_levels.push(String(lv)); try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ completed_levels:arrayUnion(String(lv)) }); }catch(e){ console.error(e); } }
+  markMastered: async (t,key,lv)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; const patch={ [f]:arrayUnion(key), xp:increment(10) }; if(lv!==undefined){ patch['xp_por_nivel.'+nvKey(lv)]=increment(10); } try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); } },
+
+  /* fecha uma meia-rodada de 5 palavras: paga bônus (uma vez só) e cuida da sequência */
+  closeHalf: async ({level, lote, half, last})=>{
+    if(!session) return null;
+    const marca='h:'+nvKey(level)+':'+lote+':'+half;
+    session.bonus_pagos=session.bonus_pagos||[];
+    if(session.bonus_pagos.includes(marca)) return { ganhos:[], total:0, streak:session.streak||0, repetido:true };
+
+    const hoje=diaBR();
+    const ganhos=[]; let add=0;
+    const patch={ nivel_atual:String(level), last_active:hoje };
+    session.bonus_pagos.push(marca); patch.bonus_pagos=session.bonus_pagos.slice(-400);
+
+    /* zera os contadores se virou o dia */
+    if(session.dia_ref!==hoje){ session.dia_ref=hoje; session.grupos_hoje=0; session.bonus_dia_pagos=[]; patch.dia_ref=hoje; }
+    session.bonus_dia_pagos=session.bonus_dia_pagos||[];
+
+    /* bônus da meia-rodada / rodada */
+    const base = last?150:50;
+    add+=base; ganhos.push({ label: last?'Rodada completa (10 palavras)':'Meia rodada (5 palavras)', xp:base });
+
+    /* sequência: conta no primeiro ciclo de 5 do dia */
+    if(session.ultimo_dia_ciclo!==hoje){
+      const ontem=diaSoma(hoje,-1);
+      session.streak = (session.ultimo_dia_ciclo===ontem) ? (session.streak||0)+1 : 1;
+      session.ultimo_dia_ciclo=hoje;
+      patch.ultimo_dia_ciclo=hoje; patch.streak=session.streak;
+      if(session.streak>1){
+        const b=Math.min(200, 100+25*(session.streak-2));
+        add+=b; ganhos.push({ label:'Sequência de '+session.streak+' dias 🔥', xp:b });
+      }
+    }
+
+    /* 2 ou mais grupos no mesmo dia */
+    if(last){
+      session.grupos_hoje=(session.grupos_hoje||0)+1;
+      patch.grupos_hoje=session.grupos_hoje;
+      if(session.grupos_hoje>=2 && !session.bonus_dia_pagos.includes('2grupos')){
+        session.bonus_dia_pagos.push('2grupos');
+        add+=200; ganhos.push({ label:'2 ou mais grupos hoje', xp:200 });
+      }
+    }
+    patch.bonus_dia_pagos=session.bonus_dia_pagos;
+
+    session.xp=(session.xp||0)+add;
+    patch.xp=increment(add);
+    patch['xp_por_nivel.'+nvKey(level)]=increment(add);
+    $('pb-xp').textContent=session.xp;
+    try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); }
+    return { ganhos, total:add, streak:session.streak||0 };
+  },
+
+  completeLevel: async (lv)=>{
+    if(!session) return; session.completed_levels=session.completed_levels||[];
+    if(session.completed_levels.includes(String(lv))) return;
+    session.completed_levels.push(String(lv));
+    session.xp=(session.xp||0)+300; $('pb-xp').textContent=session.xp;
+    try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ completed_levels:arrayUnion(String(lv)), xp:increment(300), ['xp_por_nivel.'+nvKey(lv)]:increment(300) }); }catch(e){ console.error(e); }
+  }
 };
 
 /* ---------- boot ---------- */
