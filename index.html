@@ -152,6 +152,12 @@
     width:26px;height:26px;border-radius:50%;font-size:1rem;font-weight:800;cursor:pointer;line-height:1;
     display:grid;place-items:center;transition:.15s}
   .spd-btn:hover{background:var(--accent);color:#fff;border-color:transparent}
+  .spd-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.10);border-radius:12px;
+    padding:8px 12px;margin-bottom:12px}
+  .spd-bar .spd-label{font-size:.8rem;font-weight:700;color:var(--muted)}
+  .spd-controls{display:flex;align-items:center;gap:8px}
+  .spd-now{font-size:.85rem;font-weight:800;color:var(--accent2);min-width:34px;text-align:center}
 
   .options{display:grid;gap:10px}
   .opt{
@@ -523,6 +529,14 @@
       <span id="qCount">1 / 20</span>
       <span class="streak" id="qStreak">🔥 0</span>
       <span class="score" id="qScore">✔ 0</span>
+    </div>
+    <div class="spd-bar">
+      <span class="spd-label">🔊 Velocidade do áudio</span>
+      <div class="spd-controls">
+        <button class="spd-btn" id="spdMinus" title="Mais devagar">−</button>
+        <span class="spd-now" id="spdNow">1×</span>
+        <button class="spd-btn" id="spdPlus" title="Mais rápido">+</button>
+      </div>
     </div>
     <div id="qExamples"></div>
     <div id="qQuestion"></div>
@@ -1120,8 +1134,8 @@ function renderGuided(){
     const showKey= gStage==='enpt'?'en':'pt';
     const ansKey = gStage==='enpt'?'pt':'en';
     topQuestion(STAGE_LABEL[gStage], w.level);
-    body.innerHTML='<div class="prompt"><div class="wordrow"><span class="word">'+esc(w[showKey])+'</span>'+(gStage==='enpt'?'<span class="speak-ctl"><button class="spd-btn" data-d="-1" title="Mais devagar">−</button><button class="speak-sm" title="Ouvir">🔊</button><button class="spd-btn" data-d="1" title="Mais rápido">+</button></span>':'')+'</div>'+((gStage==='enpt'&&w.pron)?'<div class="pronq">'+esc(w.pron)+'</div>':'')+'</div><div class="options"></div>';
-    if(gStage==='enpt'){ const sb=body.querySelector('.speak-sm'); if(sb) sb.onclick=()=>speak(w.en); body.querySelectorAll('.spd-btn').forEach(b=> b.onclick=()=>{ setRate(b.dataset.d==='1'?0.15:-0.15); speak(w.en); }); }
+    body.innerHTML='<div class="prompt"><div class="wordrow"><span class="word">'+esc(w[showKey])+'</span>'+(gStage==='enpt'?'<button class="speak-sm" title="Ouvir">🔊</button>':'')+'</div>'+((gStage==='enpt'&&w.pron)?'<div class="pronq">'+esc(w.pron)+'</div>':'')+'</div><div class="options"></div>';
+    if(gStage==='enpt'){ const sb=body.querySelector('.speak-sm'); if(sb) sb.onclick=()=>speak(w.en); }
     const opts=distractors(w, ansKey, 3);
     const box=body.querySelector('.options'); box.dataset.answer=w[ansKey];
     opts.forEach(o=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o; b.onclick=()=>guidedChoose(b, o===w[ansKey], w, box, ansKey); box.appendChild(b); });
@@ -1178,6 +1192,15 @@ async function guidedStageDone(){
 
 /* ganchos do menu guiado (sobrescreve o modo livre) */
 document.getElementById('startBtn').onclick=startGuided;
+(function initSpeed(){
+  const now=document.getElementById('spdNow');
+  const fmt=r=>(r).toFixed(2).replace(/0+$/,'').replace(/\.$/,'')+'×';
+  const upd=()=>{ if(now) now.textContent=fmt(SPEAK_RATE); };
+  const mn=document.getElementById('spdMinus'), pl=document.getElementById('spdPlus');
+  if(mn) mn.onclick=()=>{ setRate(-0.15); upd(); speak('one two three'); };
+  if(pl) pl.onclick=()=>{ setRate(0.15); upd(); speak('one two three'); };
+  upd();
+})();
 try{ document.getElementById('ddMode').closest('.field').classList.add('hidden'); }catch(e){}
 try{ document.getElementById('ddLevel').closest('.field').classList.add('hidden'); }catch(e){}
 try{ document.getElementById('ddLen').closest('.field').classList.add('hidden'); }catch(e){}
