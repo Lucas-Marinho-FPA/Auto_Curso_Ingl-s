@@ -384,10 +384,10 @@
   .brand-word{margin-top:10px}
 
   /* ===== Avatares (bichos) + saiba+ ===== */
-  .av-img{width:100%;height:100%;object-fit:cover;display:block}
+  .av-img{width:100%;height:100%;object-fit:cover;display:block;background:#0b2340}
   .ob-grid{grid-template-columns:repeat(3,1fr);gap:12px}
   .ob-cellw{display:flex;flex-direction:column;align-items:center;gap:3px}
-  .ob-cellw .ob-cell{width:100%;aspect-ratio:1;overflow:hidden;border-radius:16px;padding:0}
+  .ob-cellw .ob-cell{width:100%;aspect-ratio:1;overflow:hidden;border-radius:16px;padding:0;background:#0b2340}
   .ob-name{font-size:.72rem;font-weight:700;color:var(--text);text-align:center;line-height:1.05}
   .ob-info{background:none;border:none;color:var(--muted);font-size:.68rem;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px}
   .ob-info:hover{color:var(--accent2)}
@@ -1285,7 +1285,7 @@ const ANIMALS = [
 ];
 const ANIMAL_BY_ID = Object.fromEntries(ANIMALS.map(a=>[a.id,a]));
 const AV_IDS = ANIMALS.map(a=>a.id);
-function avatarSVG(id){ const a=ANIMAL_BY_ID[id]; const src=(a?id:'harpia')+'.png'; const nome=(a?a.nome:'Avatar').replace(/"/g,''); return '<img class="av-img" src="'+src+'" alt="'+nome+'" loading="lazy">'; }
+function avatarSVG(id){ const a=ANIMAL_BY_ID[id]; const nm=(a?id:'harpia'); const nome=(a?a.nome:'Avatar').replace(/"/g,''); return '<img class="av-img" src="avatars/avatars/'+nm+'.png" onerror="if(!this.dataset.s){this.dataset.s=1;this.src=\'avatars/'+nm+'.png\'}else if(this.dataset.s==\'1\'){this.dataset.s=2;this.src=\''+nm+'.png\'}" alt="'+nome+'" loading="lazy">'; }
 
 /* ---------- estado ---------- */
 let db=null, auth=null, ready=false, session=null;
