@@ -401,6 +401,14 @@
   .am-rows>div b{color:var(--accent2);font-weight:700;white-space:nowrap}
   .am-rows>div span{color:var(--text);text-align:right}
   .am-pick{margin-top:16px}
+
+  /* ===== Placa de vidro na tela de escolha (igual à barra do perfil) ===== */
+  #ob-avatar{
+    background:rgba(255,255,255,.05) !important;
+    backdrop-filter:blur(12px) saturate(1.1);-webkit-backdrop-filter:blur(12px) saturate(1.1);
+    border:1px solid rgba(255,255,255,.10) !important;
+    box-shadow:0 18px 44px rgba(0,0,0,.3), inset 0 1px 0 rgba(255,255,255,.12) !important;
+  }
 </style>
 </head>
 <body>
@@ -456,7 +464,7 @@
     <div id="ob-avatar" class="card hidden">
       <button class="ob-back" data-back="nick">‹ Voltar</button>
       <div class="ob-title">Escolha seu avatar</div>
-      <div class="ob-sub">Ele aparece do seu lado no ranking.</div>
+      <div class="ob-sub">Escolha o bicho que representa você</div>
       <div class="ob-grid" id="ob-grid"></div>
       <button class="btn-primary" id="ob-avNext" disabled>Continuar</button>
     </div>
