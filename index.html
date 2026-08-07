@@ -382,6 +382,25 @@
   .brand-badge{width:86px;height:86px;background:none !important;border:none !important;box-shadow:none !important;overflow:visible !important}
   .brand-badge img{width:100%;height:100%;object-fit:contain !important;transform:none !important;filter:drop-shadow(0 10px 20px rgba(0,0,0,.45))}
   .brand-word{margin-top:10px}
+
+  /* ===== Avatares (bichos) + saiba+ ===== */
+  .av-img{width:100%;height:100%;object-fit:cover;display:block}
+  .ob-grid{grid-template-columns:repeat(3,1fr);gap:12px}
+  .ob-cellw{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .ob-cellw .ob-cell{width:100%;aspect-ratio:1;overflow:hidden;border-radius:16px;padding:0}
+  .ob-name{font-size:.72rem;font-weight:700;color:var(--text);text-align:center;line-height:1.05}
+  .ob-info{background:none;border:none;color:var(--muted);font-size:.68rem;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:2px}
+  .ob-info:hover{color:var(--accent2)}
+  .animal-modal{position:fixed;inset:0;background:rgba(4,12,24,.66);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:200;padding:20px}
+  .animal-modal.show{display:flex}
+  .am-card{position:relative;width:100%;max-width:360px;background:linear-gradient(155deg,rgba(30,58,92,.97),rgba(14,32,58,.97));border:1px solid rgba(255,255,255,.14);border-radius:22px;padding:22px;box-shadow:0 30px 70px rgba(0,0,0,.5)}
+  .am-close{position:absolute;top:10px;right:14px;background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer}
+  .am-av{width:96px;height:96px;border-radius:50%;overflow:hidden;margin:0 auto 8px;background:#0b2340;border:1px solid rgba(255,255,255,.12)}
+  .am-title{text-align:center;font-family:'Fredoka',sans-serif;font-weight:700;font-size:1.3rem;margin-bottom:12px}
+  .am-rows>div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.07);font-size:.85rem}
+  .am-rows>div b{color:var(--accent2);font-weight:700;white-space:nowrap}
+  .am-rows>div span{color:var(--text);text-align:right}
+  .am-pick{margin-top:16px}
 </style>
 </head>
 <body>
@@ -1241,22 +1260,32 @@ const firebaseConfig = {
 };
 
 /* ---------- Avatares originais (sem marca) ---------- */
-const AV = {
-  fox:      {nome:"Raposa",  bg:"#26456B", svg:`<circle cx="50" cy="54" r="30" fill="#FF7A1A"/><path d="M22 40 30 20 42 34Z" fill="#FF7A1A"/><path d="M78 40 70 20 58 34Z" fill="#FF7A1A"/><path d="M26 55 A24 24 0 0 0 74 55 L74 62 A24 24 0 0 1 26 62Z" fill="#F4F2EC"/><circle cx="40" cy="52" r="4" fill="#20130a"/><circle cx="60" cy="52" r="4" fill="#20130a"/><path d="M46 64 54 64 50 70Z" fill="#20130a"/>`},
-  cat:      {nome:"Gato",    bg:"#2B3A52", svg:`<path d="M26 34 30 18 44 32Z" fill="#8B97AD"/><path d="M74 34 70 18 56 32Z" fill="#8B97AD"/><circle cx="50" cy="54" r="30" fill="#8B97AD"/><circle cx="40" cy="52" r="4.5" fill="#20130a"/><circle cx="60" cy="52" r="4.5" fill="#20130a"/><path d="M50 60 47 64M50 60 53 64" stroke="#20130a" stroke-width="3" stroke-linecap="round"/><path d="M28 58H40M28 64H40M72 58H60M72 64H60" stroke="#F4F2EC" stroke-width="2" stroke-linecap="round"/>`},
-  owl:      {nome:"Coruja",  bg:"#3A2C63", svg:`<path d="M50 22c-20 0-30 14-30 34s14 30 30 30 30-10 30-30S70 22 50 22Z" fill="#8E6FE0"/><path d="M24 30 40 40 30 46Z" fill="#6E4FC7"/><path d="M76 30 60 40 70 46Z" fill="#6E4FC7"/><circle cx="40" cy="52" r="13" fill="#F4F2EC"/><circle cx="60" cy="52" r="13" fill="#F4F2EC"/><circle cx="40" cy="53" r="6" fill="#20130a"/><circle cx="60" cy="53" r="6" fill="#20130a"/><path d="M46 66 54 66 50 74Z" fill="#FF9A4D"/>`},
-  frog:     {nome:"Sapo",    bg:"#1E4A3A", svg:`<circle cx="34" cy="34" r="14" fill="#4FBE7B"/><circle cx="66" cy="34" r="14" fill="#4FBE7B"/><circle cx="34" cy="34" r="6" fill="#20130a"/><circle cx="66" cy="34" r="6" fill="#20130a"/><path d="M20 52 A30 26 0 0 0 80 52 L80 58 A30 30 0 0 1 20 58Z" fill="#4FBE7B"/><path d="M34 62 Q50 74 66 62" stroke="#20130a" stroke-width="3.5" fill="none" stroke-linecap="round"/>`},
-  panda:    {nome:"Panda",   bg:"#33465F", svg:`<circle cx="30" cy="30" r="12" fill="#20130a"/><circle cx="70" cy="30" r="12" fill="#20130a"/><circle cx="50" cy="54" r="30" fill="#F4F2EC"/><ellipse cx="40" cy="52" rx="8" ry="10" fill="#20130a"/><ellipse cx="60" cy="52" rx="8" ry="10" fill="#20130a"/><circle cx="40" cy="52" r="3.5" fill="#F4F2EC"/><circle cx="60" cy="52" r="3.5" fill="#F4F2EC"/><circle cx="50" cy="66" r="4" fill="#20130a"/>`},
-  penguin:  {nome:"Pinguim", bg:"#1F5E76", svg:`<ellipse cx="50" cy="52" rx="28" ry="32" fill="#2A3550"/><ellipse cx="50" cy="58" rx="17" ry="24" fill="#F4F2EC"/><circle cx="42" cy="42" r="4" fill="#20130a"/><circle cx="58" cy="42" r="4" fill="#20130a"/><path d="M44 50 56 50 50 58Z" fill="#FF9A4D"/>`},
-  robot1:   {nome:"Robô laranja", bg:"#233A5C", svg:`<line x1="50" y1="14" x2="50" y2="26" stroke="#FF9A4D" stroke-width="3"/><circle cx="50" cy="12" r="4" fill="#FF9A4D"/><rect x="24" y="26" width="52" height="46" rx="12" fill="#FF9A4D"/><rect x="33" y="40" width="14" height="10" rx="3" fill="#20130a"/><rect x="53" y="40" width="14" height="10" rx="3" fill="#20130a"/><rect x="38" y="60" width="24" height="5" rx="2.5" fill="#20130a"/>`},
-  robot2:   {nome:"Robô ciano", bg:"#123E52", svg:`<line x1="34" y1="16" x2="40" y2="28" stroke="#37C2C4" stroke-width="3"/><line x1="66" y1="16" x2="60" y2="28" stroke="#37C2C4" stroke-width="3"/><circle cx="34" cy="14" r="3.5" fill="#37C2C4"/><circle cx="66" cy="14" r="3.5" fill="#37C2C4"/><rect x="24" y="28" width="52" height="44" rx="22" fill="#37C2C4"/><rect x="34" y="44" width="32" height="14" rx="7" fill="#0B2E52"/><circle cx="44" cy="51" r="4" fill="#9BF0F2"/><circle cx="58" cy="51" r="4" fill="#9BF0F2"/>`},
-  monster1: {nome:"Monstrinho rosa", bg:"#5A2444", svg:`<path d="M32 20 34 30M50 18 50 30M68 20 66 30" stroke="#FF6FA5" stroke-width="4" stroke-linecap="round"/><path d="M22 40 Q50 84 78 40 Q78 30 50 30 Q22 30 22 40Z" fill="#FF6FA5"/><circle cx="50" cy="48" r="12" fill="#F4F2EC"/><circle cx="50" cy="49" r="6" fill="#20130a"/><path d="M40 66 Q50 74 60 66" stroke="#20130a" stroke-width="3.5" fill="none" stroke-linecap="round"/>`},
-  monster2: {nome:"Monstrinho verde", bg:"#3E511A", svg:`<path d="M24 42 Q50 82 76 42 Q76 28 50 28 Q24 28 24 42Z" fill="#A6D93B"/><circle cx="36" cy="44" r="7" fill="#F4F2EC"/><circle cx="50" cy="40" r="7" fill="#F4F2EC"/><circle cx="64" cy="44" r="7" fill="#F4F2EC"/><circle cx="36" cy="45" r="3" fill="#20130a"/><circle cx="50" cy="41" r="3" fill="#20130a"/><circle cx="64" cy="45" r="3" fill="#20130a"/><path d="M42 62 H58 L54 70 H46Z" fill="#F4F2EC"/>`},
-  rocket:   {nome:"Foguete", bg:"#2A2F63", svg:`<path d="M50 16 C64 30 64 48 58 66 H42 C36 48 36 30 50 16Z" fill="#F4F2EC"/><circle cx="50" cy="40" r="8" fill="#1A5088"/><path d="M42 58 30 70 40 68Z" fill="#FF7A1A"/><path d="M58 58 70 70 60 68Z" fill="#FF7A1A"/><path d="M45 66 H55 L52 80 Q50 84 48 80Z" fill="#FF9A4D"/>`},
-  planet:   {nome:"Planeta", bg:"#152A55", svg:`<circle cx="50" cy="50" r="26" fill="#5A8DE0"/><path d="M32 44 Q45 40 60 46 Q52 50 40 50 Q34 48 32 44Z" fill="#7FB0F0"/><circle cx="60" cy="60" r="7" fill="#3E6DBE"/><ellipse cx="50" cy="52" rx="40" ry="12" fill="none" stroke="#FFC46B" stroke-width="4" transform="rotate(-20 50 52)"/>`}
-};
-const AV_IDS = Object.keys(AV);
-function avatarSVG(id){ const a=AV[id]||AV.fox; return `<svg viewBox="0 0 100 100" role="img" aria-label="${a.nome}"><rect x="2" y="2" width="96" height="96" rx="26" fill="${a.bg}"/>${a.svg}</svg>`; }
+const ANIMALS = [
+ {id:'harpia',nome:'Harpia',bioma:'Amazônia e Mata Atlântica',vive:'Copas das árvores mais altas de florestas densas.',imp:'Maior predador aéreo do Brasil; controla macacos e preguiças.',intel:'Alta',perigo:'Alta se provocada. Garras mais fortes que as de um urso-pardo.'},
+ {id:'onca',nome:'Onça-pintada',bioma:'Pantanal, Amazônia, Cerrado e Caatinga',vive:'Áreas florestadas perto de rios.',imp:'Topo da cadeia alimentar; garante a biodiversidade.',intel:'Alta',perigo:'Muito alta. Maior felino das Américas, mordida potentíssima.'},
+ {id:'lobo',nome:'Lobo-guará',bioma:'Cerrado e Pampas',vive:'Campos abertos e savanas.',imp:'Dispersor de sementes; ajuda a regenerar o Cerrado.',intel:'Média-alta',perigo:'Baixa. Prefere fugir a confrontar humanos.'},
+ {id:'sucuri',nome:'Sucuri-verde',bioma:'Amazônia, Pantanal e Cerrado',vive:'Rios calmos e pântanos.',imp:'Predadora de topo aquático; controla capivaras e jacarés.',intel:'Média',perigo:'Alta. Não é venenosa: mata por constrição.'},
+ {id:'arara',nome:'Arara-azul-grande',bioma:'Pantanal, Amazônia e Cerrado',vive:'Copas de palmeiras e savanas.',imp:'Dispersora de sementes; símbolo da conservação.',intel:'Muito alta',perigo:'Baixa. Dócil, mas o bico quebra nozes com facilidade.'},
+ {id:'tucano',nome:'Tucano-toco',bioma:'Cerrado, Caatinga, Pantanal e Mata Atlântica',vive:'Dosséis e bordas de mata.',imp:'Dispersor vital de sementes de árvores grandes.',intel:'Alta',perigo:'Baixa-média. Pode ser territorial e roubar ovos.'},
+ {id:'mico',nome:'Mico-leão-dourado',bioma:'Mata Atlântica (Rio de Janeiro)',vive:'Copas densas de florestas úmidas.',imp:'Espécie-bandeira; dispersa mais de 60 plantas.',intel:'Alta',perigo:'Muito baixa. Inofensivo para humanos.'},
+ {id:'sapo_ouro',nome:'Rã-dourada',bioma:'Amazônia',vive:'Chão úmido coberto de folhas.',imp:'Bioindicador de floresta saudável; controla insetos.',intel:'Baixa',perigo:'Alta (passiva). Pele com uma das toxinas mais potentes.'},
+ {id:'sapo_azul',nome:'Rã-flecha-azul',bioma:'Amazônia (norte)',vive:'Perto de riachos, no chão úmido da mata.',imp:'Bioindicador; estudada pela farmacologia.',intel:'Baixa',perigo:'Alta (passiva). Muito venenosa se manuseada.'},
+ {id:'preguica',nome:'Bicho-preguiça',bioma:'Amazônia e Mata Atlântica',vive:'Copas altas das árvores.',imp:'Abriga algas e mariposas; cicla nutrientes.',intel:'Baixa-média',perigo:'Muito baixa. Só se defende com as garras se agarrada.'},
+ {id:'capivara',nome:'Capivara',bioma:'Todo o Brasil',vive:'Sempre perto da água.',imp:'Maior roedor do mundo; base alimentar de predadores.',intel:'Média-alta',perigo:'Baixa. Pacífica, mas morde se encurralada.'},
+ {id:'tamandua',nome:'Tamanduá-bandeira',bioma:'Cerrado, Pantanal, Amazônia e Caatinga',vive:'Campos abertos e savanas.',imp:'Come até 30 mil formigas e cupins por dia.',intel:'Média',perigo:'Média-alta se ameaçado. Garras dianteiras letais.'},
+ {id:'boto',nome:'Boto-cor-de-rosa',bioma:'Bacia Amazônica',vive:'Rios de água doce e matas inundadas.',imp:'Topo da cadeia aquática nos rios.',intel:'Altíssima',perigo:'Baixa com humanos; territorial entre si.'},
+ {id:'tatu',nome:'Tatu-bola',bioma:'Caatinga e Cerrado',vive:'Áreas secas e vegetação espinhosa.',imp:'Controla invertebrados; escava o solo.',intel:'Média-baixa',perigo:'Nula. Fecha-se numa bola perfeita para se proteger.'},
+ {id:'pirarucu',nome:'Pirarucu',bioma:'Amazônia',vive:'Lagos calmos e rios de planície.',imp:'Gigante das águas doces; vital para a bacia.',intel:'Média',perigo:'Baixa para humanos; predador voraz de peixes.'},
+ {id:'falcao',nome:'Falcão-peregrino',bioma:'Todo o Brasil (migratório)',vive:'Penhascos e topos de edifícios.',imp:'Controla aves urbanas como pombos e morcegos.',intel:'Altíssima',perigo:'É o animal mais rápido do planeta (mais de 320 km/h).'},
+ {id:'anta',nome:'Anta',bioma:'Amazônia, Pantanal, Cerrado e Mata Atlântica',vive:'Florestas perto de rios.',imp:'Jardineira das florestas; dispersa sementes grandes.',intel:'Média-alta',perigo:'Baixa. Dócil, mas seu porte exige respeito.'},
+ {id:'ariranha',nome:'Ariranha',bioma:'Pantanal e Amazônia',vive:'Rios e lagos de águas limpas.',imp:'Lobo dos rios; mantém os peixes saudáveis.',intel:'Altíssima',perigo:'Alta em grupo. Enfrenta até jacarés e sucuris.'},
+ {id:'urubu',nome:'Urubu-rei',bioma:'Quase todo o Brasil',vive:'Sobrevoa florestas, savanas e campos.',imp:'Faxineiro da natureza; evita epidemias.',intel:'Média-alta',perigo:'Baixa. Dominante nas carcaças, mas não caça vivos.'},
+ {id:'bugio',nome:'Bugio-ruivo',bioma:'Mata Atlântica',vive:'Copas de florestas densas.',imp:'Dispersor de sementes; sentinela da febre amarela.',intel:'Alta',perigo:'Baixa. O urro serve para evitar brigas físicas.'},
+ {id:'jacare',nome:'Jacaré-do-papo-amarelo',bioma:'Mata Atlântica, Caatinga, Cerrado e Pampas',vive:'Manguezais, pântanos e lagoas.',imp:'Controla peixes e roedores; transporta nutrientes.',intel:'Média',perigo:'Média-alta. Defende o território com mordida forte.'}
+];
+const ANIMAL_BY_ID = Object.fromEntries(ANIMALS.map(a=>[a.id,a]));
+const AV_IDS = ANIMALS.map(a=>a.id);
+function avatarSVG(id){ const a=ANIMAL_BY_ID[id]; const src='avatars/'+(a?id:'harpia')+'.png'; const nome=(a?a.nome:'Avatar').replace(/"/g,''); return '<img class="av-img" src="'+src+'" alt="'+nome+'" loading="lazy">'; }
 
 /* ---------- estado ---------- */
 let db=null, auth=null, ready=false, session=null;
@@ -1284,7 +1313,23 @@ function pickNick(s){ $('ob-nickInput').value=s; onNick(); }
 function onNick(){ const v=$('ob-nickInput').value.trim(); draft.nick=v; if(pinMode!=='login') $('ob-nickNext').disabled=v.length<2; }
 
 /* ---------- grade de avatares ---------- */
-function buildGrid(){ const g=$('ob-grid'); g.innerHTML=AV_IDS.map(id=>`<button class="ob-cell ${draft.avatar===id?'sel':''}" data-id="${id}">${avatarSVG(id)}<span class="ck">✓</span></button>`).join(''); [...g.querySelectorAll('.ob-cell')].forEach(b=>b.onclick=()=>{ draft.avatar=b.dataset.id; buildGrid(); $('ob-avNext').disabled=false; }); $('ob-avNext').disabled=!draft.avatar; }
+function buildGrid(){ const g=$('ob-grid'); g.innerHTML=ANIMALS.map(a=>`<div class="ob-cellw"><button class="ob-cell ${draft.avatar===a.id?'sel':''}" data-id="${a.id}">${avatarSVG(a.id)}<span class="ck">✓</span></button><div class="ob-name">${a.nome}</div><button class="ob-info" data-info="${a.id}">saiba +</button></div>`).join(''); [...g.querySelectorAll('.ob-cell')].forEach(b=>b.onclick=()=>{ draft.avatar=b.dataset.id; buildGrid(); $('ob-avNext').disabled=false; }); [...g.querySelectorAll('.ob-info')].forEach(b=>b.onclick=e=>{ e.stopPropagation(); openAnimalInfo(b.dataset.info); }); $('ob-avNext').disabled=!draft.avatar; }
+function openAnimalInfo(id){
+  const a=ANIMAL_BY_ID[id]; if(!a) return;
+  let m=document.getElementById('animalModal');
+  if(!m){ m=document.createElement('div'); m.id='animalModal'; m.className='animal-modal'; document.body.appendChild(m); }
+  m.innerHTML='<div class="am-card"><button class="am-close">✕</button><div class="am-av">'+avatarSVG(id)+'</div><div class="am-title">'+a.nome+'</div><div class="am-rows">'+
+    '<div><b>Bioma</b><span>'+a.bioma+'</span></div>'+
+    '<div><b>Onde vive</b><span>'+a.vive+'</span></div>'+
+    '<div><b>Importância</b><span>'+a.imp+'</span></div>'+
+    '<div><b>Inteligência</b><span>'+a.intel+'</span></div>'+
+    '<div><b>Perigo</b><span>'+a.perigo+'</span></div></div>'+
+    '<button class="am-pick btn-primary">Escolher este</button></div>';
+  m.classList.add('show');
+  m.querySelector('.am-close').onclick=()=>m.classList.remove('show');
+  m.onclick=e=>{ if(e.target===m) m.classList.remove('show'); };
+  m.querySelector('.am-pick').onclick=()=>{ draft.avatar=id; buildGrid(); $('ob-avNext').disabled=false; m.classList.remove('show'); };
+}
 
 /* ---------- PIN ---------- */
 function buildKeypad(){ const k=$('ob-keypad'); const keys=['1','2','3','4','5','6','7','8','9','','0','⌫']; k.innerHTML=keys.map(n=> n===''?'<div></div>':`<button class="ob-key ${n==='⌫'?'act':''}" data-k="${n}">${n}</button>`).join(''); [...k.querySelectorAll('button')].forEach(b=>b.onclick=()=>pinKey(b.dataset.k)); }
