@@ -496,34 +496,39 @@
   .gi-lv{font-size:1.4rem;font-weight:800;text-align:center;
     font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
   .gi-lv i{font-style:normal;color:var(--accent)}
-  .gi-hr{height:1px;background:rgba(255,255,255,.10);margin:14px 2px}
+  .gi-hr{height:1px;background:rgba(255,255,255,.09);margin:15px 0}
+  .gi-body{max-width:318px;margin:0 auto}
   .gi-lbl{display:flex;align-items:center;justify-content:space-between;gap:10px;
-    font-size:.68rem;font-weight:800;letter-spacing:1px;color:var(--muted)}
+    font-size:.66rem;font-weight:800;letter-spacing:1.1px;color:var(--muted)}
   .gi-lbl em{font-style:normal;color:var(--accent2);letter-spacing:.3px;font-size:.74rem}
-  .caps{display:flex;gap:5px;margin:9px 0 2px}
-  .caps i{flex:1;height:14px;border-radius:7px;background:rgba(8,26,48,.75);
-    border:1px solid rgba(255,255,255,.09)}
-  .caps i.on{background:linear-gradient(180deg,#FF9F42,var(--accent));border-color:transparent;
-    box-shadow:0 0 9px rgba(255,122,26,.42)}
-  .tarefa{font-size:1rem;font-weight:800;color:var(--text);margin:7px 0 9px;line-height:1.3}
 
-  .steps{display:flex;flex-direction:column;gap:6px;margin-top:2px}
-  .stp{display:flex;align-items:baseline;gap:10px;font-size:.85rem;color:var(--muted)}
-  .stp b{flex:none;min-width:44px;color:var(--accent2);font-weight:800;font-size:.95rem}
-  .stp .stp-t{flex:1;min-width:0}
-  .stp em{font-style:normal;font-size:.72rem;color:rgba(143,166,195,.75);flex:none}
-  .stp.off{opacity:.36}
+  .caps{display:flex;justify-content:space-between;gap:6px;margin:11px 2px 2px}
+  .caps i{width:13px;height:13px;flex:none;border-radius:50%;
+    background:rgba(6,20,38,.85);border:1px solid rgba(255,255,255,.15);transition:.25s}
+  .caps i.on{background:radial-gradient(circle at 35% 30%,#FFB061,var(--accent) 62%);
+    border-color:rgba(255,176,97,.55);box-shadow:0 0 8px rgba(255,122,26,.55)}
+
+  .tarefa{font-size:1.02rem;font-weight:800;color:var(--text);text-align:center;
+    margin:2px 0 13px;font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
+  .steps{display:flex;flex-direction:column;gap:9px}
+  .stp{display:flex;align-items:baseline;font-size:.84rem;color:var(--muted)}
+  .stp span{flex:none;max-width:76%}
+  .stp i{flex:1;min-width:12px;height:0;margin:0 7px 4px;
+    border-bottom:1px dotted rgba(255,255,255,.20)}
+  .stp b{flex:none;color:var(--accent2);font-weight:800;font-size:.92rem;
+    min-width:42px;text-align:right}
+  .stp.off{opacity:.34}
   .stp.off b{color:var(--muted)}
+
+  .chal-x{margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,.09);
+    font-size:.78rem;color:var(--muted);text-align:center;line-height:1.5}
+  .chal-x b{color:var(--accent2)}
+  .chal-x.ok{line-height:1.5}
   .hoje{display:flex;align-items:center;justify-content:space-between;gap:12px;
     margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.11)}
-  .hoje span{font-size:.7rem;font-weight:800;letter-spacing:1px;color:var(--muted)}
-  .hoje b{font-size:1.55rem;font-weight:800;color:var(--accent);line-height:1;
+  .hoje span{font-size:.66rem;font-weight:800;letter-spacing:1.1px;color:var(--muted)}
+  .hoje b{font-size:1.6rem;font-weight:800;color:var(--accent);line-height:1;
     font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
-  .chal-x{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.09);
-    font-size:.8rem;color:var(--muted)}
-  .chal-x b{color:var(--accent2)}
-  .chal-x.ok{color:var(--muted);line-height:1.45}
-  .gi-next{text-align:center;font-size:.75rem;color:var(--muted);margin-top:9px}
 
   .footnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:22px auto 0;
     max-width:270px;border-radius:16px;padding:6px;
@@ -1308,30 +1313,32 @@ async function renderGuidedInfo(){
   const meiaOk = st.half>0;                       /* primeira metade já fechada */
   const chave = (st.level===''?'sn':String(st.level).replace(/[^a-zA-Z0-9]/g,'_'))+'|'+st.loteIdx;
   const mesmoDia = !meiaOk || (cloud.meiaLote===chave && cloud.meiaHoje);
-  const passo=(vl,lb,ex,off)=>'<div class="stp'+(off?' off':'')+'">'+
-      '<b>+'+vl+'</b><span class="stp-t">'+lb+'</span>'+
-      (ex?'<em>'+ex+'</em>':'')+'</div>';
+  const passo=(vl,lb,off)=>'<div class="stp'+(off?' off':'')+'">'+
+      '<span>'+lb+'</span><i></i><b>+'+vl+'</b></div>';
   const rodape = podeDobro
     ? '<div class="chal-x">Feche <b>2 grupos hoje</b> e ganhe <b>+200 XP</b> de bônus</div>'
     : '<div class="chal-x ok">Você já fechou 2 grupos hoje 👏 Daqui pra frente é lucro — e descansar também faz parte. Aprender é consistência, não volume.</div>';
   const xpHoje = cloud.xpHoje||0;
+  const n = st.loteAll.length;
 
   box.innerHTML=
     '<div class="gi-lv">'+lvl+'</div>'+
     '<div class="gi-sub" style="text-align:center">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+'</div>'+
-    '<div class="gi-hr"></div>'+
-    '<div class="gi-lbl"><span>PROGRESSO DO GRUPO</span><em>'+dom+' de '+st.loteAll.length+'</em></div>'+
-    '<div class="caps">'+caps+'</div>'+
-    '<div class="gi-hr"></div>'+
-    '<div class="tarefa">Aprenda '+st.loteAll.length+' palavras</div>'+
-    '<div class="steps">'+
-      passo(10, 'a cada etapa acertada', '30 por palavra', false)+
-      passo(50, 'ao fechar 5 palavras', '', false)+
-      passo(150, 'ao fechar as '+st.loteAll.length+' do grupo', '', false)+
-      passo(100, 'se as '+st.loteAll.length+' saírem no mesmo dia', '', !mesmoDia)+
-    '</div>'+
-    rodape+
-    '<div class="hoje"><span>SEU XP HOJE</span><b>'+xpHoje+'</b></div>';
+    '<div class="gi-body">'+
+      '<div class="gi-hr"></div>'+
+      '<div class="gi-lbl"><span>PROGRESSO DO GRUPO</span><em>'+dom+' de '+n+'</em></div>'+
+      '<div class="caps">'+caps+'</div>'+
+      '<div class="gi-hr"></div>'+
+      '<div class="tarefa">Aprenda '+n+' palavras</div>'+
+      '<div class="steps">'+
+        passo(10, 'a cada etapa acertada', false)+
+        passo(50, 'ao fechar 5 palavras', false)+
+        passo(150, 'ao fechar as '+n+' do grupo', false)+
+        passo(100, 'se as '+n+' saírem no mesmo dia', !mesmoDia)+
+      '</div>'+
+      rodape+
+      '<div class="hoje"><span>SEU XP HOJE</span><b>'+xpHoje+'</b></div>'+
+    '</div>';
   renderGreeting();
 }
 
