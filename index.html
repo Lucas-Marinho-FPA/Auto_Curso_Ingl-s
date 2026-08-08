@@ -487,7 +487,9 @@
 
   .greet{margin:-4px 0 14px;padding:0 4px}
   .greet b{display:block;font-size:.92rem;font-weight:800;color:var(--text)}
-  .greet span{display:block;font-size:.8rem;color:var(--muted);margin-top:2px}
+  .greet span{display:block;font-size:.95rem;color:var(--text);margin-top:1px;font-weight:700;
+    font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
+  .greet span i{font-style:normal;color:var(--accent)}
 
   .gi-lv{font-size:1.4rem;font-weight:800;text-align:center;
     font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
@@ -501,10 +503,21 @@
     border:1px solid rgba(255,255,255,.09)}
   .caps i.on{background:linear-gradient(180deg,#FF9F42,var(--accent));border-color:transparent;
     box-shadow:0 0 9px rgba(255,122,26,.42)}
-  .chal{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
-  .chal .cl{font-size:.86rem;color:var(--text)}
-  .chal .cv{font-size:1.28rem;font-weight:800;color:var(--accent);line-height:1.2}
-  .chal .cx{font-size:.72rem;color:var(--muted);text-align:right;flex:none}
+  .tarefa{font-size:.95rem;font-weight:700;color:var(--text);margin:7px 0 12px;line-height:1.35}
+  .steps{display:flex;flex-direction:column;gap:7px}
+  .stp{display:flex;align-items:center;gap:9px;font-size:.83rem;color:var(--muted)}
+  .stp .stp-i{width:17px;height:17px;flex:none;border-radius:50%;display:grid;place-items:center;
+    font-size:.66rem;font-weight:800;color:var(--muted);border:1px solid rgba(255,255,255,.18)}
+  .stp .stp-t{flex:1;min-width:0}
+  .stp b{color:var(--accent2);font-weight:800;white-space:nowrap}
+  .stp.done{color:var(--text)}
+  .stp.done .stp-i{background:var(--accent);border-color:transparent;color:#fff}
+  .stp.done b{color:var(--accent)}
+  .stp.off{opacity:.38}
+  .stp.off b{color:var(--muted)}
+  .chal-x{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.09);
+    font-size:.8rem;color:var(--muted)}
+  .chal-x b{color:var(--accent2)}
   .gi-next{text-align:center;font-size:.75rem;color:var(--muted);margin-top:9px}
 
   .footnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:22px auto 0;
@@ -1255,17 +1268,11 @@ const LEVEL_NAMES = {'1':'Iniciante','2':'Básico','3':'Pré-intermediário','4'
 
 function renderGreeting(){
   const g=document.getElementById('greeting'); if(!g) return;
-  const nick=(window.BoraCloud&&window.BoraCloud.getProgress)?(document.getElementById('pb-nick').textContent||''):'';
+  const nick=document.getElementById('pb-nick').textContent||'';
   const h=new Date().getHours();
   const ola = h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
-  const p=window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
-  const s=p.streak||0;
-  let sub;
-  if(s<=0) sub='comece sua sequência hoje: 5 palavras já contam';
-  else if(s===1) sub='volte amanhã e sua sequência vira 2 dias';
-  else sub=s+' dias seguidos — não deixa o fogo apagar';
-  document.getElementById('gr-hi').textContent=ola+', '+nick;
-  document.getElementById('gr-sub').textContent=sub;
+  document.getElementById('gr-hi').textContent=ola+', '+nick+'!';
+  document.getElementById('gr-sub').innerHTML='Bora de <i>Inglês</i>?';
   g.classList.remove('hidden');
 }
 
@@ -1293,12 +1300,19 @@ async function renderGuidedInfo(){
   const caps=st.loteAll.map((w,i)=>'<i class="'+(i<dom?'on':'')+'"></i>').join('');
 
   /* desafio: quanto falta pra fechar a rodada atual */
-  let falta=0;
-  st.loteWords.forEach(w=>{ const k=keyOf(w);
-    if(!p.enpt.has(k)) falta+=10; if(!p.pten.has(k)) falta+=10; if(!p.type.has(k)) falta+=10; });
-  const valor = falta + (st.halfLast?100:50);
+  const podeDobro = !((window.BoraCloud.getProgress?window.BoraCloud.getProgress():{}).bonusDia||[]).includes('2grupos');
+
+  /* desafio: escada de marcos, com a tarefa da etapa atual no topo */
+  const TAREFA={ enpt:'Reconheça 5 palavras do inglês pro português',
+                 pten:'Lembre 5 palavras do português pro inglês',
+                 type:'Escreva 5 palavras sem errar a grafia' };
   const cloud = window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
-  const podeDobro = !(cloud.bonusDia||[]).includes('2grupos');
+  const meiaOk = st.half>0;                       /* primeira metade já fechada */
+  const chave = (st.level===''?'sn':String(st.level).replace(/[^a-zA-Z0-9]/g,'_'))+'|'+st.loteIdx;
+  const mesmoDia = !meiaOk || (cloud.meiaLote===chave && cloud.meiaHoje);
+  const passo=(ok,txt,xp,off)=>'<div class="stp'+(ok?' done':'')+(off?' off':'')+'">'+
+      '<span class="stp-i">'+(ok?'✓':'○')+'</span><span class="stp-t">'+txt+'</span>'+
+      '<b>+'+xp+'</b></div>';
 
   box.innerHTML=
     '<div class="gi-lv">'+lvl+'</div>'+
@@ -1307,16 +1321,15 @@ async function renderGuidedInfo(){
     '<div class="gi-lbl"><span>PROGRESSO DO GRUPO</span><em>'+dom+' de '+st.loteAll.length+'</em></div>'+
     '<div class="caps">'+caps+'</div>'+
     '<div class="gi-hr"></div>'+
-    '<div class="gi-lbl"><span>DESAFIO DE HOJE</span></div>'+
-    '<div class="chal"><div><div class="cl">'+(st.halfLast?'Feche o grupo e garanta':'Feche esta rodada e garanta')+'</div>'+
-      '<div class="cv">+'+valor+' XP</div></div>'+
-      (podeDobro?'<div class="cx">2º grupo hoje<br>+200 XP</div>':'')+
-    '</div>';
+    '<div class="gi-lbl"><span>AGORA</span></div>'+
+    '<div class="tarefa">'+(TAREFA[st.stage]||'')+'</div>'+
+    '<div class="steps">'+
+      passo(meiaOk, 'as 5 desta rodada', 50, false)+
+      passo(false, 'as 10 palavras do grupo', 150, false)+
+      passo(false, 'as 10 no mesmo dia', 100, !mesmoDia)+
+    '</div>'+
+    (podeDobro?'<div class="chal-x">e mais <b>+200 XP</b> se este for o 2º grupo de hoje</div>':'');
   if(nx) nx.textContent='próxima etapa: '+STAGE_SHORT[st.stage];
-  if(window.setProfileSub){
-    const nv = st.level===''?'Sem nível':'Nível '+st.level;
-    window.setProfileSub(nv+' · '+(st.loteIdx+1)+' de '+st.loteCount+' grupos');
-  }
   renderGreeting();
 }
 
@@ -1699,7 +1712,7 @@ function nvKey(lv){ const s=String(lv===''||lv==null?'sn':lv).replace(/[^a-zA-Z0
 
 window.BoraCloud={
   onCorrect, openRanking,
-  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0, streak:(session&&session.streak)||0, bonusDia:((session&&session.dia_ref)===diaBR()?((session&&session.bonus_dia_pagos)||[]):[]) }),
+  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0, streak:(session&&session.streak)||0, bonusDia:((session&&session.dia_ref)===diaBR()?((session&&session.bonus_dia_pagos)||[]):[]), meiaLote:(session&&session.meia_lote)||'', meiaHoje:((session&&session.meia_dia)===diaBR()) }),
   markMastered: async (t,key,lv)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; const patch={ [f]:arrayUnion(key), xp:increment(10) }; if(lv!==undefined){ patch['xp_por_nivel.'+nvKey(lv)]=increment(10); } try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); } },
 
   /* fecha uma meia-rodada de 5 palavras: paga bônus (uma vez só) e cuida da sequência */
@@ -1719,8 +1732,17 @@ window.BoraCloud={
     session.bonus_dia_pagos=session.bonus_dia_pagos||[];
 
     /* bônus da meia-rodada / rodada */
-    const base = last?100:50;
+    const base = last?150:50;
     add+=base; ganhos.push({ label: last?'Bônus de rodada completa':'Bônus meia rodada', xp:base });
+
+    /* +100 se as duas metades do grupo saírem no mesmo dia */
+    const chave = nvKey(level)+'|'+lote;
+    if(!last){
+      session.meia_lote=chave; session.meia_dia=hoje;
+      patch.meia_lote=chave; patch.meia_dia=hoje;
+    } else if(session.meia_lote===chave && session.meia_dia===hoje){
+      add+=100; ganhos.push({ label:'Grupo inteiro no mesmo dia', xp:100 });
+    }
 
     /* sequência: conta no primeiro ciclo de 5 do dia */
     if(session.ultimo_dia_ciclo!==hoje){
