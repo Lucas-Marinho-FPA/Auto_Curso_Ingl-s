@@ -468,8 +468,9 @@
   .pbar .pav{width:62px !important;height:62px !important;flex:none}
   .pbar .pinfo{min-width:0;flex:1}
   .pbar .pnm{font-size:1.12rem;line-height:1.25}
-  .pbar .pmeta{font-size:.9rem;color:var(--muted)}
-  .pbar .pmeta b{color:var(--accent2);font-size:1rem;font-weight:800}
+  .pbar .pmeta{font-size:.85rem;color:var(--muted)}
+  .pbar .pmeta b{color:var(--accent2);font-size:1.45rem;font-weight:800;
+    font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
   .pbar .psub{font-size:.76rem;color:var(--muted);margin-top:2px}
 
   .stk{flex:none;display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:14px;
@@ -485,8 +486,9 @@
   .stk.s3 .stk-n b{color:var(--accent2)}
   @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
 
-  .greet{margin:-4px 0 14px;padding:0 4px}
-  .greet b{display:block;font-size:.92rem;font-weight:800;color:var(--text)}
+  .greet{margin:2px 0 12px;padding:0 4px}
+  .greet b{display:block;font-size:1.15rem;font-weight:800;color:var(--text);
+    font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
   .greet span{display:block;font-size:.95rem;color:var(--text);margin-top:1px;font-weight:700;
     font-family:'Fredoka','Segoe UI',system-ui,sans-serif;letter-spacing:.2px}
   .greet span i{font-style:normal;color:var(--accent)}
@@ -503,7 +505,13 @@
     border:1px solid rgba(255,255,255,.09)}
   .caps i.on{background:linear-gradient(180deg,#FF9F42,var(--accent));border-color:transparent;
     box-shadow:0 0 9px rgba(255,122,26,.42)}
-  .tarefa{font-size:.95rem;font-weight:700;color:var(--text);margin:7px 0 12px;line-height:1.35}
+  .tarefa{font-size:1rem;font-weight:800;color:var(--text);margin:7px 0 9px;line-height:1.3}
+  .chips{display:flex;gap:6px;margin-bottom:13px}
+  .chips i{flex:1;text-align:center;font-style:normal;font-size:.72rem;font-weight:700;
+    color:var(--muted);padding:5px 4px;border-radius:9px;
+    background:rgba(8,26,48,.55);border:1px solid rgba(255,255,255,.07)}
+  .chips i.now{color:var(--accent2);border-color:rgba(255,122,26,.45);
+    background:rgba(255,122,26,.12)}
   .steps{display:flex;flex-direction:column;gap:7px}
   .stp{display:flex;align-items:center;gap:9px;font-size:.83rem;color:var(--muted)}
   .stp .stp-i{width:17px;height:17px;flex:none;border-radius:50%;display:grid;place-items:center;
@@ -518,6 +526,7 @@
   .chal-x{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.09);
     font-size:.8rem;color:var(--muted)}
   .chal-x b{color:var(--accent2)}
+  .chal-x.ok{color:var(--muted);line-height:1.45}
   .gi-next{text-align:center;font-size:.75rem;color:var(--muted);margin-top:9px}
 
   .footnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:22px auto 0;
@@ -556,10 +565,13 @@
   </header>
 
   <!-- ===== BARRA DE PERFIL (logado) ===== -->
+  <div id="greeting" class="greet hidden">
+    <b id="gr-hi"></b>
+    <span id="gr-sub"></span>
+  </div>
   <div id="profileBar" class="pbar hidden">
     <div class="pav" id="pb-av"></div>
     <div class="pinfo">
-      <div class="pnm" id="pb-nick">—</div>
       <div class="pmeta"><b id="pb-xp">0</b> <span>XP</span></div>
       <div class="psub" id="pb-sub"></div>
     </div>
@@ -567,10 +579,6 @@
       <span class="stk-f">🔥</span>
       <span class="stk-n"><b id="pb-streak">0</b><i id="pb-stkl">dias</i></span>
     </div>
-  </div>
-  <div id="greeting" class="greet hidden">
-    <b id="gr-hi"></b>
-    <span id="gr-sub"></span>
   </div>
 
   <!-- ===== PERFIL / ONBOARDING ===== -->
@@ -1268,7 +1276,7 @@ const LEVEL_NAMES = {'1':'Iniciante','2':'Básico','3':'Pré-intermediário','4'
 
 function renderGreeting(){
   const g=document.getElementById('greeting'); if(!g) return;
-  const nick=document.getElementById('pb-nick').textContent||'';
+  const nick=window.__nick||'';
   const h=new Date().getHours();
   const ola = h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
   document.getElementById('gr-hi').textContent=ola+', '+nick+'!';
@@ -1302,10 +1310,9 @@ async function renderGuidedInfo(){
   /* desafio: quanto falta pra fechar a rodada atual */
   const podeDobro = !((window.BoraCloud.getProgress?window.BoraCloud.getProgress():{}).bonusDia||[]).includes('2grupos');
 
-  /* desafio: escada de marcos, com a tarefa da etapa atual no topo */
-  const TAREFA={ enpt:'Reconheça 5 palavras do inglês pro português',
-                 pten:'Lembre 5 palavras do português pro inglês',
-                 type:'Escreva 5 palavras sem errar a grafia' };
+  /* desafio: escada de marcos, com as 3 etapas do aprendizado no topo */
+  const ETAPAS=[['enpt','EN→PT'],['pten','PT→EN'],['type','Escrita']];
+  const chips=ETAPAS.map(([k,t])=>'<i class="'+(k===st.stage?'now':'')+'">'+t+'</i>').join('');
   const cloud = window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
   const meiaOk = st.half>0;                       /* primeira metade já fechada */
   const chave = (st.level===''?'sn':String(st.level).replace(/[^a-zA-Z0-9]/g,'_'))+'|'+st.loteIdx;
@@ -1313,6 +1320,9 @@ async function renderGuidedInfo(){
   const passo=(ok,txt,xp,off)=>'<div class="stp'+(ok?' done':'')+(off?' off':'')+'">'+
       '<span class="stp-i">'+(ok?'✓':'○')+'</span><span class="stp-t">'+txt+'</span>'+
       '<b>+'+xp+'</b></div>';
+  const rodape = podeDobro
+    ? '<div class="chal-x">Feche <b>2 grupos hoje</b> e ganhe <b>+200 XP</b> de bônus</div>'
+    : '<div class="chal-x ok">Você já fechou 2 grupos hoje 👏 Daqui pra frente é lucro — e descansar também faz parte. Aprender é consistência, não volume.</div>';
 
   box.innerHTML=
     '<div class="gi-lv">'+lvl+'</div>'+
@@ -1322,13 +1332,14 @@ async function renderGuidedInfo(){
     '<div class="caps">'+caps+'</div>'+
     '<div class="gi-hr"></div>'+
     '<div class="gi-lbl"><span>AGORA</span></div>'+
-    '<div class="tarefa">'+(TAREFA[st.stage]||'')+'</div>'+
+    '<div class="tarefa">Aprenda 5 palavras</div>'+
+    '<div class="chips">'+chips+'</div>'+
     '<div class="steps">'+
       passo(meiaOk, 'as 5 desta rodada', 50, false)+
       passo(false, 'as 10 palavras do grupo', 150, false)+
       passo(false, 'as 10 no mesmo dia', 100, !mesmoDia)+
     '</div>'+
-    (podeDobro?'<div class="chal-x">e mais <b>+200 XP</b> se este for o 2º grupo de hoje</div>':'');
+    rodape;
   if(nx) nx.textContent='próxima etapa: '+STAGE_SHORT[st.stage];
   renderGreeting();
 }
@@ -1645,8 +1656,8 @@ async function updateStreak(key,u){
 
 /* ---------- entrar no jogo / sair ---------- */
 function renderProfileBar(){
+  window.__nick = session.nick||'';
   $('pb-av').innerHTML=avatarSVG(session.avatar);
-  $('pb-nick').textContent=session.nick;
   $('pb-xp').textContent=session.xp||0;
   const s=session.streak||0;
   $('pb-streak').textContent=s;
