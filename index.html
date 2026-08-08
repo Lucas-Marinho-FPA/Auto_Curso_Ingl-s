@@ -506,23 +506,19 @@
   .caps i.on{background:linear-gradient(180deg,#FF9F42,var(--accent));border-color:transparent;
     box-shadow:0 0 9px rgba(255,122,26,.42)}
   .tarefa{font-size:1rem;font-weight:800;color:var(--text);margin:7px 0 9px;line-height:1.3}
-  .chips{display:flex;gap:6px;margin-bottom:13px}
-  .chips i{flex:1;text-align:center;font-style:normal;font-size:.72rem;font-weight:700;
-    color:var(--muted);padding:5px 4px;border-radius:9px;
-    background:rgba(8,26,48,.55);border:1px solid rgba(255,255,255,.07)}
-  .chips i.now{color:var(--accent2);border-color:rgba(255,122,26,.45);
-    background:rgba(255,122,26,.12)}
-  .steps{display:flex;flex-direction:column;gap:7px}
-  .stp{display:flex;align-items:center;gap:9px;font-size:.83rem;color:var(--muted)}
-  .stp .stp-i{width:17px;height:17px;flex:none;border-radius:50%;display:grid;place-items:center;
-    font-size:.66rem;font-weight:800;color:var(--muted);border:1px solid rgba(255,255,255,.18)}
+
+  .steps{display:flex;flex-direction:column;gap:6px;margin-top:2px}
+  .stp{display:flex;align-items:baseline;gap:10px;font-size:.85rem;color:var(--muted)}
+  .stp b{flex:none;min-width:44px;color:var(--accent2);font-weight:800;font-size:.95rem}
   .stp .stp-t{flex:1;min-width:0}
-  .stp b{color:var(--accent2);font-weight:800;white-space:nowrap}
-  .stp.done{color:var(--text)}
-  .stp.done .stp-i{background:var(--accent);border-color:transparent;color:#fff}
-  .stp.done b{color:var(--accent)}
-  .stp.off{opacity:.38}
+  .stp em{font-style:normal;font-size:.72rem;color:rgba(143,166,195,.75);flex:none}
+  .stp.off{opacity:.36}
   .stp.off b{color:var(--muted)}
+  .hoje{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:13px;padding-top:12px;border-top:1px solid rgba(255,255,255,.11)}
+  .hoje span{font-size:.7rem;font-weight:800;letter-spacing:1px;color:var(--muted)}
+  .hoje b{font-size:1.55rem;font-weight:800;color:var(--accent);line-height:1;
+    font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
   .chal-x{margin-top:11px;padding-top:10px;border-top:1px solid rgba(255,255,255,.09);
     font-size:.8rem;color:var(--muted)}
   .chal-x b{color:var(--accent2)}
@@ -682,7 +678,6 @@
 
     <div id="guidedInfo" class="guided-info"></div>
     <button class="btn-primary" id="startBtn">▶ Continuar</button>
-    <div class="gi-next" id="giNext"></div>
 
     <div class="footnav" id="footNav">
       <button class="fn-btn" id="pb-rank"><span class="fn-i">🏆</span>Ranking</button>
@@ -1286,14 +1281,12 @@ function renderGreeting(){
 
 async function renderGuidedInfo(){
   const box=document.getElementById('guidedInfo'); if(!box) return;
-  const nx=document.getElementById('giNext');
   if(!window.BoraCloud){ box.innerHTML='<div class="gi-sub">Entre no seu perfil para começar.</div>'; return; }
   const st=await computeGuidedState();
   const start=document.getElementById('startBtn');
   if(st.done){
     box.innerHTML='<div class="gi-title">Tudo dominado! 🏆</div><div class="gi-sub">Você concluiu todas as palavras. Adicione mais na planilha para continuar.</div>';
-    if(nx) nx.textContent='';
-    start.disabled=true; start.textContent='Tudo dominado 🎉'; return;
+      start.disabled=true; start.textContent='Tudo dominado 🎉'; return;
   }
   start.disabled=false; start.textContent='▶ Continuar';
 
@@ -1311,36 +1304,34 @@ async function renderGuidedInfo(){
   const podeDobro = !((window.BoraCloud.getProgress?window.BoraCloud.getProgress():{}).bonusDia||[]).includes('2grupos');
 
   /* desafio: escada de marcos, com as 3 etapas do aprendizado no topo */
-  const ETAPAS=[['enpt','EN→PT'],['pten','PT→EN'],['type','Escrita']];
-  const chips=ETAPAS.map(([k,t])=>'<i class="'+(k===st.stage?'now':'')+'">'+t+'</i>').join('');
   const cloud = window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
   const meiaOk = st.half>0;                       /* primeira metade já fechada */
   const chave = (st.level===''?'sn':String(st.level).replace(/[^a-zA-Z0-9]/g,'_'))+'|'+st.loteIdx;
   const mesmoDia = !meiaOk || (cloud.meiaLote===chave && cloud.meiaHoje);
-  const passo=(ok,txt,xp,off)=>'<div class="stp'+(ok?' done':'')+(off?' off':'')+'">'+
-      '<span class="stp-i">'+(ok?'✓':'○')+'</span><span class="stp-t">'+txt+'</span>'+
-      '<b>+'+xp+'</b></div>';
+  const passo=(vl,lb,ex,off)=>'<div class="stp'+(off?' off':'')+'">'+
+      '<b>+'+vl+'</b><span class="stp-t">'+lb+'</span>'+
+      (ex?'<em>'+ex+'</em>':'')+'</div>';
   const rodape = podeDobro
     ? '<div class="chal-x">Feche <b>2 grupos hoje</b> e ganhe <b>+200 XP</b> de bônus</div>'
     : '<div class="chal-x ok">Você já fechou 2 grupos hoje 👏 Daqui pra frente é lucro — e descansar também faz parte. Aprender é consistência, não volume.</div>';
+  const xpHoje = cloud.xpHoje||0;
 
   box.innerHTML=
     '<div class="gi-lv">'+lvl+'</div>'+
-    '<div class="gi-sub" style="text-align:center">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteAll.length+' palavras</div>'+
+    '<div class="gi-sub" style="text-align:center">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+'</div>'+
     '<div class="gi-hr"></div>'+
     '<div class="gi-lbl"><span>PROGRESSO DO GRUPO</span><em>'+dom+' de '+st.loteAll.length+'</em></div>'+
     '<div class="caps">'+caps+'</div>'+
     '<div class="gi-hr"></div>'+
-    '<div class="gi-lbl"><span>AGORA</span></div>'+
-    '<div class="tarefa">Aprenda 5 palavras</div>'+
-    '<div class="chips">'+chips+'</div>'+
+    '<div class="tarefa">Aprenda '+st.loteAll.length+' palavras</div>'+
     '<div class="steps">'+
-      passo(meiaOk, 'as 5 desta rodada', 50, false)+
-      passo(false, 'as 10 palavras do grupo', 150, false)+
-      passo(false, 'as 10 no mesmo dia', 100, !mesmoDia)+
+      passo(10, 'a cada etapa acertada', '30 por palavra', false)+
+      passo(50, 'ao fechar 5 palavras', '', false)+
+      passo(150, 'ao fechar as '+st.loteAll.length+' do grupo', '', false)+
+      passo(100, 'se as '+st.loteAll.length+' saírem no mesmo dia', '', !mesmoDia)+
     '</div>'+
-    rodape;
-  if(nx) nx.textContent='próxima etapa: '+STAGE_SHORT[st.stage];
+    rodape+
+    '<div class="hoje"><span>SEU XP HOJE</span><b>'+xpHoje+'</b></div>';
   renderGreeting();
 }
 
@@ -1719,12 +1710,20 @@ $('rank-back').onclick=()=>{ $('rankScreen').classList.add('hidden'); if(session
 /* ---- dia de Brasília (UTC-3) e XP por nível ---- */
 function diaBR(ms){ return new Date((ms||Date.now())-3*3600*1000).toISOString().slice(0,10); }
 function diaSoma(d,n){ const t=new Date(d+'T12:00:00Z'); t.setUTCDate(t.getUTCDate()+n); return t.toISOString().slice(0,10); }
+function resetDia(patch){
+  const hoje=diaBR();
+  if(session && session.dia_ref!==hoje){
+    session.dia_ref=hoje; session.grupos_hoje=0; session.bonus_dia_pagos=[]; session.xp_hoje=0;
+    if(patch){ patch.dia_ref=hoje; patch.grupos_hoje=0; patch.bonus_dia_pagos=[]; patch.xp_hoje=0; }
+  }
+  return hoje;
+}
 function nvKey(lv){ const s=String(lv===''||lv==null?'sn':lv).replace(/[^a-zA-Z0-9]/g,'_'); return s||'sn'; }
 
 window.BoraCloud={
   onCorrect, openRanking,
-  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0, streak:(session&&session.streak)||0, bonusDia:((session&&session.dia_ref)===diaBR()?((session&&session.bonus_dia_pagos)||[]):[]), meiaLote:(session&&session.meia_lote)||'', meiaHoje:((session&&session.meia_dia)===diaBR()) }),
-  markMastered: async (t,key,lv)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; const patch={ [f]:arrayUnion(key), xp:increment(10) }; if(lv!==undefined){ patch['xp_por_nivel.'+nvKey(lv)]=increment(10); } try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); } },
+  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0, streak:(session&&session.streak)||0, bonusDia:((session&&session.dia_ref)===diaBR()?((session&&session.bonus_dia_pagos)||[]):[]), meiaLote:(session&&session.meia_lote)||'', meiaHoje:((session&&session.meia_dia)===diaBR()), xpHoje:((session&&session.dia_ref)===diaBR()?((session&&session.xp_hoje)||0):0) }),
+  markMastered: async (t,key,lv)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; const patch={ [f]:arrayUnion(key), xp:increment(10) }; resetDia(patch); session.xp_hoje=(session.xp_hoje||0)+10; patch.xp_hoje=session.xp_hoje; if(lv!==undefined){ patch['xp_por_nivel.'+nvKey(lv)]=increment(10); } try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); } },
 
   /* fecha uma meia-rodada de 5 palavras: paga bônus (uma vez só) e cuida da sequência */
   closeHalf: async ({level, lote, half, last})=>{
@@ -1738,8 +1737,7 @@ window.BoraCloud={
     const patch={ nivel_atual:String(level), last_active:hoje };
     session.bonus_pagos.push(marca); patch.bonus_pagos=session.bonus_pagos.slice(-400);
 
-    /* zera os contadores se virou o dia */
-    if(session.dia_ref!==hoje){ session.dia_ref=hoje; session.grupos_hoje=0; session.bonus_dia_pagos=[]; patch.dia_ref=hoje; }
+    resetDia(patch);
     session.bonus_dia_pagos=session.bonus_dia_pagos||[];
 
     /* bônus da meia-rodada / rodada */
@@ -1779,7 +1777,8 @@ window.BoraCloud={
     patch.bonus_dia_pagos=session.bonus_dia_pagos;
 
     session.xp=(session.xp||0)+add;
-    patch.xp=increment(add);
+    session.xp_hoje=(session.xp_hoje||0)+add;
+    patch.xp=increment(add); patch.xp_hoje=session.xp_hoje;
     patch['xp_por_nivel.'+nvKey(level)]=increment(add);
     $('pb-xp').textContent=session.xp;
     try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); }
@@ -1790,8 +1789,11 @@ window.BoraCloud={
     if(!session) return; session.completed_levels=session.completed_levels||[];
     if(session.completed_levels.includes(String(lv))) return;
     session.completed_levels.push(String(lv));
-    session.xp=(session.xp||0)+300; $('pb-xp').textContent=session.xp;
-    try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),{ completed_levels:arrayUnion(String(lv)), xp:increment(300), ['xp_por_nivel.'+nvKey(lv)]:increment(300) }); }catch(e){ console.error(e); }
+    const patch={ completed_levels:arrayUnion(String(lv)), xp:increment(300), ['xp_por_nivel.'+nvKey(lv)]:increment(300) };
+    resetDia(patch);
+    session.xp=(session.xp||0)+300; session.xp_hoje=(session.xp_hoje||0)+300;
+    patch.xp_hoje=session.xp_hoje; $('pb-xp').textContent=session.xp;
+    try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); }
   }
 };
 
