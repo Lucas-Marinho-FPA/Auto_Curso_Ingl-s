@@ -463,6 +463,59 @@
   .tz-sep{height:1px;background:rgba(255,122,26,.35);margin:14px 8px 12px}
   .tz-more{font-weight:800;color:var(--accent2);font-size:.95rem}
   @keyframes tzGrow{from{width:0 !important}}
+  /* ===== HOME: perfil, sequência, cápsulas, desafio, rodapé ===== */
+  .pbar{gap:13px !important;padding:12px 14px !important}
+  .pbar .pav{width:62px !important;height:62px !important;flex:none}
+  .pbar .pinfo{min-width:0;flex:1}
+  .pbar .pnm{font-size:1.12rem;line-height:1.25}
+  .pbar .pmeta{font-size:.9rem;color:var(--muted)}
+  .pbar .pmeta b{color:var(--accent2);font-size:1rem;font-weight:800}
+  .pbar .psub{font-size:.76rem;color:var(--muted);margin-top:2px}
+
+  .stk{flex:none;display:flex;align-items:center;gap:7px;padding:7px 11px;border-radius:14px;
+    background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10)}
+  .stk .stk-f{font-size:1.15rem;line-height:1;filter:grayscale(1);opacity:.32;transition:.25s}
+  .stk .stk-n{display:flex;flex-direction:column;line-height:1.1}
+  .stk .stk-n b{font-size:1.05rem;font-weight:800;color:var(--text)}
+  .stk .stk-n i{font-style:normal;font-size:.68rem;color:var(--muted)}
+  .stk.s1 .stk-f{filter:none;opacity:1}
+  .stk.s3{border-color:rgba(255,122,26,.45);background:rgba(255,122,26,.10)}
+  .stk.s3 .stk-f{filter:none;opacity:1;font-size:1.4rem;
+    text-shadow:0 0 12px rgba(255,122,26,.75);animation:breathe 2.6s ease-in-out infinite}
+  .stk.s3 .stk-n b{color:var(--accent2)}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+
+  .greet{margin:-4px 0 14px;padding:0 4px}
+  .greet b{display:block;font-size:.92rem;font-weight:800;color:var(--text)}
+  .greet span{display:block;font-size:.8rem;color:var(--muted);margin-top:2px}
+
+  .gi-lv{font-size:1.4rem;font-weight:800;text-align:center;
+    font-family:'Fredoka','Segoe UI',system-ui,sans-serif}
+  .gi-lv i{font-style:normal;color:var(--accent)}
+  .gi-hr{height:1px;background:rgba(255,255,255,.10);margin:14px 2px}
+  .gi-lbl{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    font-size:.68rem;font-weight:800;letter-spacing:1px;color:var(--muted)}
+  .gi-lbl em{font-style:normal;color:var(--accent2);letter-spacing:.3px;font-size:.74rem}
+  .caps{display:flex;gap:5px;margin:9px 0 2px}
+  .caps i{flex:1;height:14px;border-radius:7px;background:rgba(8,26,48,.75);
+    border:1px solid rgba(255,255,255,.09)}
+  .caps i.on{background:linear-gradient(180deg,#FF9F42,var(--accent));border-color:transparent;
+    box-shadow:0 0 9px rgba(255,122,26,.42)}
+  .chal{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:6px}
+  .chal .cl{font-size:.86rem;color:var(--text)}
+  .chal .cv{font-size:1.28rem;font-weight:800;color:var(--accent);line-height:1.2}
+  .chal .cx{font-size:.72rem;color:var(--muted);text-align:right;flex:none}
+  .gi-next{text-align:center;font-size:.75rem;color:var(--muted);margin-top:9px}
+
+  .footnav{display:flex;align-items:center;justify-content:center;gap:4px;margin:22px auto 0;
+    max-width:270px;border-radius:16px;padding:6px;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)}
+  .footnav .fn-btn{flex:1;background:none;border:none;color:var(--text);font-weight:800;
+    font-size:.84rem;padding:10px 6px;border-radius:12px;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:6px}
+  .footnav .fn-btn:hover{background:rgba(255,255,255,.06)}
+  .footnav .fn-quiet{color:var(--muted);font-weight:600}
+  .footnav .fn-sep{width:1px;height:22px;background:rgba(255,255,255,.10);flex:none}
   .rank-row .pos.md{width:30px;height:30px;flex:none;border-radius:50%;display:grid;place-items:center;
     font-size:.85rem;font-weight:800;color:#0E2742}
   .rank-row .pos.m1{background:#FFC84A}
@@ -492,14 +545,19 @@
   <!-- ===== BARRA DE PERFIL (logado) ===== -->
   <div id="profileBar" class="pbar hidden">
     <div class="pav" id="pb-av"></div>
-    <div>
+    <div class="pinfo">
       <div class="pnm" id="pb-nick">—</div>
-      <div class="pmeta"><b id="pb-xp">0</b> XP · 🔥 <span id="pb-streak">1</span></div>
+      <div class="pmeta"><b id="pb-xp">0</b> <span>XP</span></div>
+      <div class="psub" id="pb-sub"></div>
     </div>
-    <div class="pacts">
-      <button class="pbtn" id="pb-rank">🏆 Ranking</button>
-      <button class="pbtn" id="pb-out">Sair</button>
+    <div class="stk s0" id="pb-stk">
+      <span class="stk-f">🔥</span>
+      <span class="stk-n"><b id="pb-streak">0</b><i id="pb-stkl">dias</i></span>
     </div>
+  </div>
+  <div id="greeting" class="greet hidden">
+    <b id="gr-hi"></b>
+    <span id="gr-sub"></span>
   </div>
 
   <!-- ===== PERFIL / ONBOARDING ===== -->
@@ -602,7 +660,14 @@
     </div>
 
     <div id="guidedInfo" class="guided-info"></div>
-    <button class="btn-primary" id="startBtn">▶ Iniciar</button>
+    <button class="btn-primary" id="startBtn">▶ Continuar</button>
+    <div class="gi-next" id="giNext"></div>
+
+    <div class="footnav" id="footNav">
+      <button class="fn-btn" id="pb-rank"><span class="fn-i">🏆</span>Ranking</button>
+      <span class="fn-sep"></span>
+      <button class="fn-btn fn-quiet" id="pb-out">Sair</button>
+    </div>
 
     <div class="stats-mini">
       <div><b id="stTotal">0</b>respondidas</div>
@@ -1185,20 +1250,74 @@ async function computeGuidedState(){
   return { done:true };
 }
 
+/* nomes dos níveis — ajuste conforme a sua planilha */
+const LEVEL_NAMES = {'1':'Iniciante','2':'Básico','3':'Pré-intermediário','4':'Intermediário','5':'Avançado','6':'Fluente'};
+
+function renderGreeting(){
+  const g=document.getElementById('greeting'); if(!g) return;
+  const nick=(window.BoraCloud&&window.BoraCloud.getProgress)?(document.getElementById('pb-nick').textContent||''):'';
+  const h=new Date().getHours();
+  const ola = h<12?'Bom dia':(h<18?'Boa tarde':'Boa noite');
+  const p=window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
+  const s=p.streak||0;
+  let sub;
+  if(s<=0) sub='comece sua sequência hoje: 5 palavras já contam';
+  else if(s===1) sub='volte amanhã e sua sequência vira 2 dias';
+  else sub=s+' dias seguidos — não deixa o fogo apagar';
+  document.getElementById('gr-hi').textContent=ola+', '+nick;
+  document.getElementById('gr-sub').textContent=sub;
+  g.classList.remove('hidden');
+}
+
 async function renderGuidedInfo(){
   const box=document.getElementById('guidedInfo'); if(!box) return;
+  const nx=document.getElementById('giNext');
   if(!window.BoraCloud){ box.innerHTML='<div class="gi-sub">Entre no seu perfil para começar.</div>'; return; }
   const st=await computeGuidedState();
   const start=document.getElementById('startBtn');
   if(st.done){
     box.innerHTML='<div class="gi-title">Tudo dominado! 🏆</div><div class="gi-sub">Você concluiu todas as palavras. Adicione mais na planilha para continuar.</div>';
+    if(nx) nx.textContent='';
     start.disabled=true; start.textContent='Tudo dominado 🎉'; return;
   }
-  start.disabled=false; start.textContent='▶ Iniciar';
-  const lvl = st.level===''?'Sem nível':'Nível '+st.level;
-  box.innerHTML='<div class="gi-title">'+lvl+'</div>'+
-    '<div class="gi-sub">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteAll.length+' palavras</div>'+
-    '<div class="gi-sub">Rodada de <b>'+st.loteWords.length+'</b> · '+(st.halfLast?'fecha o grupo':'primeira metade')+'</div>';
+  start.disabled=false; start.textContent='▶ Continuar';
+
+  const nome=LEVEL_NAMES[String(st.level)];
+  const lvl = st.level===''
+    ? 'Sem nível'
+    : 'Nível '+st.level+(nome?': <i>'+nome+'</i>':'');
+
+  /* cápsulas: palavras do grupo com os 3 tipos dominados */
+  const p=st.prog;
+  const dom=st.loteAll.filter(w=>{ const k=keyOf(w); return p.enpt.has(k)&&p.pten.has(k)&&p.type.has(k); }).length;
+  const caps=st.loteAll.map((w,i)=>'<i class="'+(i<dom?'on':'')+'"></i>').join('');
+
+  /* desafio: quanto falta pra fechar a rodada atual */
+  let falta=0;
+  st.loteWords.forEach(w=>{ const k=keyOf(w);
+    if(!p.enpt.has(k)) falta+=10; if(!p.pten.has(k)) falta+=10; if(!p.type.has(k)) falta+=10; });
+  const valor = falta + (st.halfLast?100:50);
+  const cloud = window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
+  const podeDobro = !(cloud.bonusDia||[]).includes('2grupos');
+
+  box.innerHTML=
+    '<div class="gi-lv">'+lvl+'</div>'+
+    '<div class="gi-sub" style="text-align:center">Grupo <b>'+(st.loteIdx+1)+'</b> de '+st.loteCount+' · '+st.loteAll.length+' palavras</div>'+
+    '<div class="gi-hr"></div>'+
+    '<div class="gi-lbl"><span>PROGRESSO DO GRUPO</span><em>'+dom+' de '+st.loteAll.length+'</em></div>'+
+    '<div class="caps">'+caps+'</div>'+
+    '<div class="gi-hr"></div>'+
+    '<div class="gi-lbl"><span>DESAFIO DE HOJE</span></div>'+
+    '<div class="chal"><div><div class="cl">'+(st.halfLast?'Feche o grupo e garanta':'Feche esta rodada e garanta')+'</div>'+
+      '<div class="cv">+'+valor+' XP</div></div>'+
+      (podeDobro?'<div class="cx">2º grupo hoje<br>+200 XP</div>':'')+
+    '</div>';
+  if(nx) nx.textContent='próxima etapa: '+STAGE_SHORT[st.stage];
+  if(window.setProfileSub){
+    const nv = st.level===''?'Sem nível':'Nível '+st.level;
+    window.setProfileSub(nv+' · '+(st.loteIdx+1)+' de '+st.loteCount+' grupos');
+  }
+  renderGreeting();
 }
 
 async function startGuided(){
@@ -1512,7 +1631,18 @@ async function updateStreak(key,u){
 }
 
 /* ---------- entrar no jogo / sair ---------- */
-function renderProfileBar(){ $('pb-av').innerHTML=avatarSVG(session.avatar); $('pb-nick').textContent=session.nick; $('pb-xp').textContent=session.xp||0; $('pb-streak').textContent=session.streak||1; }
+function renderProfileBar(){
+  $('pb-av').innerHTML=avatarSVG(session.avatar);
+  $('pb-nick').textContent=session.nick;
+  $('pb-xp').textContent=session.xp||0;
+  const s=session.streak||0;
+  $('pb-streak').textContent=s;
+  $('pb-stkl').textContent=(s===1?'dia':'dias');
+  const stk=$('pb-stk');
+  if(stk) stk.className='stk '+(s>=3?'s3':(s>=1?'s1':'s0'));
+}
+/* linha secundária: progresso no nível, sem enquadramento de déficit */
+window.setProfileSub=function(txt){ const e=document.getElementById('pb-sub'); if(e) e.textContent=txt||''; };
 function enterApp(){
   document.body.classList.remove('welcome-mode');
   $('onboard').classList.add('hidden'); $('rankScreen').classList.add('hidden');
@@ -1569,7 +1699,7 @@ function nvKey(lv){ const s=String(lv===''||lv==null?'sn':lv).replace(/[^a-zA-Z0
 
 window.BoraCloud={
   onCorrect, openRanking,
-  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0 }),
+  getProgress: ()=>({ enpt:new Set((session&&session.m_enpt)||[]), pten:new Set((session&&session.m_pten)||[]), type:new Set((session&&session.m_type)||[]), completed:new Set((session&&session.completed_levels)||[]), xp:(session&&session.xp)||0, streak:(session&&session.streak)||0, bonusDia:((session&&session.dia_ref)===diaBR()?((session&&session.bonus_dia_pagos)||[]):[]) }),
   markMastered: async (t,key,lv)=>{ if(!session) return; const f={enpt:'m_enpt',pten:'m_pten',type:'m_type'}[t]; if(!f) return; session[f]=session[f]||[]; if(session[f].includes(key)) return; session[f].push(key); session.xp=(session.xp||0)+10; $('pb-xp').textContent=session.xp; const patch={ [f]:arrayUnion(key), xp:increment(10) }; if(lv!==undefined){ patch['xp_por_nivel.'+nvKey(lv)]=increment(10); } try{ await updateDoc(doc(db,'usuarios',session.apelido_lower),patch); }catch(e){ console.error(e); } },
 
   /* fecha uma meia-rodada de 5 palavras: paga bônus (uma vez só) e cuida da sequência */
