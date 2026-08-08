@@ -1228,12 +1228,12 @@ async function init(force){
   renderGuidedInfo();
 }
 /* ================= ETAPA 2 — CAMINHO GUIADO ================= */
-const LOTE = 10, SUB = 5;
+const LOTE = 10, BLOCO = 3;
 const STAGE_LABEL = { enpt:'Qual a tradução?', pten:'Como se escreve em inglês?', type:'Escrita — digite em inglês' };
 const STAGE_SHORT = { enpt:'EN→PT', pten:'PT→EN', type:'Escrita' };
 const STAGE_ORDER = ['enpt','pten','type'];
 let gStage='enpt', gLevel='', gLoteWords=[], gQueue=[], gCurrent=null, gTotal=0, gDone=0;
-let gLote=0, gHalf=0, gHalfLast=true;
+let gLote=0, gBloco=0, gLoteAll=[];
 
 function keyOf(w){ return (w.en||'').toLowerCase().trim(); }
 function levelsAsc(){
@@ -1257,16 +1257,12 @@ async function computeGuidedState(){
     let li = lotes.findIndex(ch => ch.some(w=> !domAll(p,keyOf(w))));
     if(li<0){ await window.BoraCloud.completeLevel(lv); continue; }
     const ch = lotes[li];
-    const halves=[]; for(let i=0;i<ch.length;i+=SUB) halves.push(ch.slice(i,i+SUB));
-    let hi = halves.findIndex(h => h.some(w=> !domAll(p,keyOf(w))));
-    if(hi<0) hi = halves.length-1;
-    const half = halves[hi];
-    let stage;
-    if(half.some(w=>!p.enpt.has(keyOf(w)))) stage='enpt';
-    else if(half.some(w=>!p.pten.has(keyOf(w)))) stage='pten';
-    else stage='type';
-    return { done:false, level:lv, loteIdx:li, loteCount:lotes.length, stage, loteWords:half,
-             half:hi, halfCount:halves.length, halfLast:(hi===halves.length-1), loteAll:ch, prog:p };
+    const blocos=[]; for(let i=0;i<ch.length;i+=BLOCO) blocos.push(ch.slice(i,i+BLOCO));
+    let bi = blocos.findIndex(b => b.some(w=> !domAll(p,keyOf(w))));
+    if(bi<0) bi = blocos.length-1;
+    return { done:false, level:lv, loteIdx:li, loteCount:lotes.length,
+             blocoIdx:bi, blocoCount:blocos.length, blocoWords:blocos[bi],
+             loteAll:ch, prog:p };
   }
   return { done:true };
 }
@@ -1310,7 +1306,7 @@ async function renderGuidedInfo(){
 
   /* desafio: escada de marcos, com as 3 etapas do aprendizado no topo */
   const cloud = window.BoraCloud.getProgress?window.BoraCloud.getProgress():{};
-  const meiaOk = st.half>0;                       /* primeira metade já fechada */
+  const meiaOk = dom>=5;                          /* 5 palavras já dominadas */
   const chave = (st.level===''?'sn':String(st.level).replace(/[^a-zA-Z0-9]/g,'_'))+'|'+st.loteIdx;
   const mesmoDia = !meiaOk || (cloud.meiaLote===chave && cloud.meiaHoje);
   const passo=(vl,lb,off)=>'<div class="stp'+(off?' off':'')+'">'+
@@ -1342,21 +1338,44 @@ async function renderGuidedInfo(){
   renderGreeting();
 }
 
+function espalhar(itens){
+  /* monta a fila sempre puxando da palavra com mais perguntas restantes,
+     nunca a mesma da pergunta anterior — garante o espaçamento */
+  const porPalavra=new Map();
+  shuffle(itens).forEach(it=>{ const k=keyOf(it.w);
+    if(!porPalavra.has(k)) porPalavra.set(k,[]); porPalavra.get(k).push(it); });
+  const fila=[]; let ultimo=null;
+  while(true){
+    let alvo=null, max=0;
+    porPalavra.forEach((lista,k)=>{ if(lista.length>max && k!==ultimo){ max=lista.length; alvo=k; } });
+    if(!alvo){ /* só sobrou a palavra anterior */
+      porPalavra.forEach((lista,k)=>{ if(lista.length>max){ max=lista.length; alvo=k; } });
+      if(!alvo) break;
+    }
+    fila.push(porPalavra.get(alvo).pop()); ultimo=alvo;
+    if(!porPalavra.get(alvo).length) porPalavra.delete(alvo);
+  }
+  return fila;
+}
+
 async function startGuided(){
   if(!window.BoraCloud){ toast&&toast('Entre no seu perfil.'); return; }
   const st=await computeGuidedState();
   if(st.done){ renderGuidedInfo(); return; }
-  gLevel=st.level; gStage=st.stage; gLoteWords=st.loteWords;
-  gLote=st.loteIdx; gHalf=st.half; gHalfLast=st.halfLast;
+  gLevel=st.level; gLote=st.loteIdx; gBloco=st.blocoIdx;
+  gLoteWords=st.blocoWords; gLoteAll=st.loteAll;
   ACTIVE = WORDS.slice();                 /* iscas podem vir de qualquer palavra */
-  const set = st.prog[st.stage];
-  gQueue = shuffle(st.loteWords.filter(w=> !set.has(keyOf(w))));
+  const itens=[];
+  st.blocoWords.forEach(w=>{ const k=keyOf(w);
+    ['enpt','pten','type'].forEach(t=>{ if(!st.prog[t].has(k)) itens.push({w:w,t:t}); }); });
+  gQueue = espalhar(itens);
   gTotal = gQueue.length; gDone=0;
   document.getElementById('home').classList.add('hidden');
   document.getElementById('result').classList.add('hidden');
   document.getElementById('quiz').classList.remove('hidden');
   document.getElementById('topProgress').classList.remove('hidden');
   { const pb=document.getElementById('profileBar'); if(pb) pb.classList.add('hidden'); }
+  { const gr=document.getElementById('greeting'); if(gr) gr.classList.add('hidden'); }
   document.getElementById('navBack').style.display='none';
   document.getElementById('navNext').style.display='none';
   renderGuided();
@@ -1364,7 +1383,7 @@ async function startGuided(){
 
 function renderGuided(){
   if(!gQueue.length){ guidedStageDone(); return; }
-  const w=gQueue[0]; gCurrent=w; window.scrollTo(0,0);
+  const it=gQueue[0]; const w=it.w; gStage=it.t; gCurrent=w; window.scrollTo(0,0);
   document.getElementById('qExamples').innerHTML='';
   document.getElementById('qNext').innerHTML='';
   document.getElementById('qBar').style.width=(gTotal?gDone/gTotal*100:0)+'%';
@@ -1415,12 +1434,21 @@ function guidedResolve(correct, w, ansKey, correction){
 }
 
 async function guidedStageDone(){
-  const prevStage=gStage, prevLevel=gLevel, prevLote=gLote, prevHalf=gHalf, prevLast=gHalfLast;
-  const prevN=gLoteWords.length;
-  let premio=null;
-  if(prevStage==='type' && window.BoraCloud.closeHalf){
-    premio = await window.BoraCloud.closeHalf({ level:prevLevel, lote:prevLote, half:prevHalf, last:prevLast });
+  const prevLevel=gLevel, prevLote=gLote, prevAll=gLoteAll.slice();
+  const p=window.BoraCloud.getProgress();
+  const dom = prevAll.filter(w=>{ const k=keyOf(w);
+    return p.enpt.has(k)&&p.pten.has(k)&&p.type.has(k); }).length;
+
+  /* marcos: 5 palavras dominadas e grupo completo */
+  let ganhos=[], total=0, streak=0, dobro=true, fechouGrupo=false;
+  const junta=r=>{ if(!r) return; if(r.ganhos&&r.ganhos.length){ ganhos=ganhos.concat(r.ganhos); total+=r.total; }
+                   streak=r.streak||streak; if(r.dobro===false) dobro=false; };
+  if(window.BoraCloud.closeHalf){
+    if(dom>=5) junta(await window.BoraCloud.closeHalf({level:prevLevel,lote:prevLote,half:0,last:false}));
+    if(dom>=prevAll.length){ fechouGrupo=true;
+      junta(await window.BoraCloud.closeHalf({level:prevLevel,lote:prevLote,half:1,last:true})); }
   }
+
   const st=await computeGuidedState();
   document.getElementById('topProgress').classList.add('hidden');
   document.getElementById('qExamples').innerHTML='';
@@ -1431,32 +1459,32 @@ async function guidedStageDone(){
     body.innerHTML='<div class="result"><div style="font-size:3rem">🏆</div><div class="big" style="font-size:1.9rem">Tudo dominado!</div><div class="msg">Você concluiu todas as palavras disponíveis. Adicione mais na planilha para continuar.</div></div><button class="btn-primary" id="gHome">🏠 Voltar ao menu</button>';
     document.getElementById('gHome').onclick=goHome; return;
   }
-  let emoji='✅', title='Etapa concluída!', sub='Agora: '+STAGE_SHORT[st.stage];
-  if(String(st.level)!==String(prevLevel)){ emoji='🏆'; title='Nível dominado!'; sub='Você concluiu o '+(prevLevel===''?'grupo sem nível':'Nível '+prevLevel)+'. Agora: '+(st.level===''?'Sem nível':'Nível '+st.level)+' · '+STAGE_SHORT[st.stage]; }
-  else if(prevStage==='type'){
-    if(prevLast){ emoji='🎉'; title='Rodada completa!'; sub='Você fechou o grupo de 10 palavras.'; }
-    else { emoji='💪'; title='5 palavras dominadas!'; sub='Ciclo completo nas três etapas. Faltam só mais 5 pra fechar o grupo e garantir o bônus maior.'; }
-  }
+
+  const nb=gLoteWords.length;
+  let emoji='✅', title=nb+' palavras dominadas!', sub='Cada uma passou pelas três etapas.';
+  if(String(st.level)!==String(prevLevel)){
+    emoji='🏆'; title='Nível dominado!';
+    sub='Você concluiu o '+(prevLevel===''?'grupo sem nível':'Nível '+prevLevel)+'. Agora: '+(st.level===''?'Sem nível':'Nível '+st.level)+'.';
+  } else if(fechouGrupo){ emoji='🎉'; title='Grupo completo!'; sub='As '+prevAll.length+' palavras do grupo estão dominadas.'; }
+
   let extra='';
-  if(premio && premio.ganhos){
-    const gan=[{ label:prevN+' palavras × 30 XP', xp:prevN*30 }].concat(premio.ganhos);
-    const tot=premio.total + prevN*30;
-    extra='<div class="bonus-box">'+gan.map(g=>'<div class="bonus-row"><span>'+g.label+'</span><b>+'+g.xp+' XP</b></div>').join('')+
-      '<div class="bonus-tot"><span>Total desta rodada</span><b>+'+tot+' XP</b></div></div>';
-    if(premio.streak>1) extra+='<div class="streak-line">🔥 Sequência de '+premio.streak+' dias</div>';
-  }
-  /* o pirulito: só na primeira metade, mostrando quanto vale fechar o grupo */
-  if(prevStage==='type' && !prevLast && !st.done && String(st.level)===String(prevLevel)){
-    const n=st.loteWords.length, valor=n*30+100, feitas=prevN, tot10=feitas+n;
-    const pct=Math.round(feitas*100/tot10);
+  const gan=[{label:nb+' palavras × 30 XP', xp:nb*30}].concat(ganhos);
+  const tot=total+nb*30;
+  extra='<div class="bonus-box">'+gan.map(g=>'<div class="bonus-row"><span>'+g.label+'</span><b>+'+g.xp+' XP</b></div>').join('')+
+    '<div class="bonus-tot"><span>Total desta rodada</span><b>+'+tot+' XP</b></div></div>';
+  if(streak>1) extra+='<div class="streak-line">🔥 Sequência de '+streak+' dias</div>';
+
+  /* quanto ainda vale fechar o grupo */
+  if(!fechouGrupo && String(st.level)===String(prevLevel)){
+    const n=prevAll.length, faltam=n-dom;
+    const valor = faltam*30 + (dom<5?50:0) + 150;
     extra+='<div class="teaser">'+
-      '<div class="tz-top">FALTAM '+n+' PALAVRAS</div>'+
-      '<div class="tz-bar"><i style="width:'+pct+'%"></i></div>'+
-      '<div class="tz-min">'+feitas+' de '+tot10+' palavras</div>'+
+      '<div class="tz-top">FALTAM '+faltam+' PALAVRAS</div>'+
+      '<div class="tz-bar"><i style="width:'+Math.round(dom*100/n)+'%"></i></div>'+
+      '<div class="tz-min">'+dom+' de '+n+' dominadas</div>'+
       '<div class="tz-lb">Fechando o grupo você leva</div>'+
       '<div class="tz-xp">+'+valor+' XP</div>'+
-      '<div class="tz-min">'+n+' palavras ('+(n*30)+') + bônus de rodada (100)</div>'+
-      (premio&&premio.dobro?'<div class="tz-sep"></div><div class="tz-lb">E se fechar mais um grupo hoje,</div><div class="tz-more">ainda ganha +200 XP de bônus</div>':'')+
+      (dobro?'<div class="tz-sep"></div><div class="tz-lb">E se fechar mais um grupo hoje,</div><div class="tz-more">ainda ganha +200 XP de bônus</div>':'')+
     '</div>';
   }
   body.innerHTML='<div class="result"><div style="font-size:3rem">'+emoji+'</div><div class="big" style="font-size:1.8rem">'+title+'</div><div class="msg">'+sub+'</div></div>'+extra+'<button class="btn-primary" id="gNextStage">Continuar ›</button><button class="btn-ghost" id="gHome2">🏠 Sair para o menu</button>';
